@@ -1,0 +1,19 @@
+bool neki = true;
+void main(int* sth);
+
+a + b = 3;
+a++;
+neki123 = "penis velik \"";
+
+123;
+neki = 123;
+
+if (x < 3) {
+	penis = "asd";
+} else {
+	penis = false;
+}
+
+while(true);
+
+for() { break; }
