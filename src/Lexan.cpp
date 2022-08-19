@@ -1,6 +1,8 @@
 #include "Lexan.h"
+#include "Logger.h"
 #include <fstream>
 #include <ctype.h>
+
 
 Lexan::Lexan() {}
 
@@ -9,7 +11,7 @@ bool Lexan::parse(const std::string& file) {
 	std::ifstream input(file);
 	
 	if (!input.is_open()) {
-		std::cout << "Could not open file: " << file << std::endl;
+		Logger::getInstance().error("Lexan: Could not open file: " + file);
 		return false;
 	}
 
@@ -25,7 +27,7 @@ bool Lexan::parse(const std::string& file) {
 	return true;
 }
 
-bool Lexan::parseLine(std::string line, int i) {
+bool Lexan::parseLine(std::string& line, int i) {
 	int start = 0;
 	bool done = false;
 
@@ -46,7 +48,7 @@ bool Lexan::parseLine(std::string line, int i) {
 					c = line[j];
 
 					if(c == '"' && previous != '\\') {
-						tokens.emplace_back(Token::STRING, i, start, j - start);
+						tokens.emplace_back(Token::STRING, i, start, j - start, line.substr(start, j - start + 1));
 						break;
 					}
 					previous = c;
@@ -137,11 +139,11 @@ bool Lexan::parseLine(std::string line, int i) {
 				if (isdigit(c)) {
 					for(; j < line.size() && isdigit(line[j]); j++);
 					if(isalpha(line[j])) {
-						std::cout << "Lexan: Invalid number on line " << (i+1) << "[" << start << "]" << std::endl;
+						Logger::getInstance().error("Lexan: Invalid number on line %d[%d]\n", (i+1), start);
 						return false;
 					}
 					j--;
-					tokens.emplace_back(Token::NUMBER, i, start, j - start);
+					tokens.emplace_back(Token::NUMBER, i, start, j - start, line.substr(start, j - start + 1));
 				}
 				// keywords and ids
 				else if (isalpha(c)) {
@@ -174,11 +176,11 @@ bool Lexan::parseLine(std::string line, int i) {
 					} else {
 						for(; j < line.size() && isalpha(line[j]); j++);
 						j--;
-						tokens.emplace_back(Token::IDENTIFIER, i, start, j - start);
+						tokens.emplace_back(Token::IDENTIFIER, i, start, j - start, line.substr(start, j - start + 1));
 					}
 				}
 				else {
-					std::cout << "Lexan: Invalid character on line " << (i+1) << "[" << j << "]" << std::endl;
+					Logger::getInstance().error("Lexan: Invalid character on line %d[%d]\n", (i+1), j);
 					return false;
 				}
 				break;

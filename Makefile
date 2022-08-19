@@ -1,8 +1,12 @@
+.phony: clean
 
-all: main
+all: bin/main
 
-main: main.cpp Lexan.cpp
+bin/main: src/main.cpp src/Lexan.cpp src/Font.cpp src/Logger.cpp
 	g++ $^ -O3 --std=c++17 -o $@
 
-run: main
+run: bin/main
 	./$^
+
+clean:
+	rm bin/*

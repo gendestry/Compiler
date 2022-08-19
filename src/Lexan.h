@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <string>
 #include <iostream>
@@ -60,12 +61,13 @@ public:
 		BREAK
 	};
 
-	Token(TokenType type, int line, int start, int len = 0) : type(type), line(line), start(start), len(len) {}
+	Token(TokenType type, int line, int start, int len = 0, std::string text = "") : type(type), line(line), start(start), len(len), text(text) {}
 
 	TokenType getType() const { return type; }
 	int getLine() const { return line; }
 	int getStart() const { return start; }
 	int getLen() const { return len; }
+	std::string getText() const { return text; }
 
 	friend std::ostream& operator<<(std::ostream& os, const Token& token) {
 		os << token.tokenNames[token.type] << "(" << token.start << "," << token.start + token.len <<  ")";
@@ -76,6 +78,7 @@ private:
 	int line;
 	int start;
 	int len;
+	std::string text;
 };
 
 
@@ -85,7 +88,9 @@ public:
 	Lexan();
 
 	bool parse(const std::string& file);
-	bool parseLine(std::string line, int i);
+	bool parseLine(std::string& line, int i);
 
 	void printTokens();
+
+	const std::vector<Token>& getTokens() const { return tokens; }
 };
