@@ -1,19 +1,47 @@
-bool neki = true;
-void main(int* sth);
+// void penis() {
+// 	penis();
 
-a + b = 3;
-a++;
-neki123 = "penis velik \"";
+// 	if(x == 3) {
+// 		penis;
+// 	}
 
-123;
-neki = 123;
+// 	while(true) {
+// 		return;
+// 		return true;
+// 	}
 
-if (x < 3) {
-	penis = "asd";
-} else {
-	penis = false;
+// }
+
+// int** x = 0;
+
+// void neki(char x, int a);
+
+// struct neki {
+// 	int x;
+// 	int y;
+// 	float x;
+// }
+
+// int penis(int x, int y) {
+// 	return (x + y) * 5;
+// }
+
+struct sth {
+	int x;
+	int y;
 }
 
-while(true);
+int penis() {
 
-for() { break; }
+}
+
+int main() {
+	int a = 0;
+
+	if(true != false) {
+		while(a < 0) {
+			q = qwe + 1;
+			return;
+		}
+	}
+}

@@ -1,9 +1,13 @@
 .phony: clean
 
 all: bin/main
+debug: bin/main-debug
 
-bin/main: src/main.cpp src/Lexan.cpp src/Font.cpp src/Logger.cpp
+bin/main: src/main.cpp src/Lexan.cpp src/Font.cpp src/Logger.cpp src/Synan.cpp
 	g++ $^ -O3 --std=c++17 -o $@
+
+bin/main-debug: src/main.cpp src/Lexan.cpp src/Font.cpp src/Logger.cpp src/Synan.cpp
+	g++ $^ -g --std=c++17 -o $@
 
 run: bin/main
 	./$^

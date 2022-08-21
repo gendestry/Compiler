@@ -1,0 +1,37 @@
+program						prg -> decl+; 
+
+function declaration		decl -> type identifier(|type identifier|? |, type identifier|*);
+function declaration		decl -> type identifier(|type identifier|? |, type identifier|*) { |stmt|* }
+variable declaration		decl -> type identifier;
+variable declaration		decl -> type identifier = expr;
+type declaration			decl -> typedef type identifier;
+struct declaration			decl -> struct identifier { |decl;|* };
+
+pointer type				type -> type*
+atomic type					type -> void | char | int | bool | float
+named type					type -> identifier
+array type					type -> type[expr]
+
+function call				expr -> identifier( |expr|? |, expr|* )
+infix expression			expr -> A A'		A' -> (&&  ||) A A' | empty
+							   A -> B B'		B' -> (&  |) B B' | empty
+							   B -> C C'		C' -> (==  !=  <  >  <=  >=) C C' | empty
+							   C -> D D'		D' -> (+  -  ^) D D' | empty
+							   D -> E E'		E' -> (*  /  %) E E' | empty
+prefix expression			   E -> (++  --  +  -  !  *  &  ~  (type)) E | F
+postfix expression			   F -> G G'		G' -> (++  --  [expr]  .identifier  ->identifer) G' | empty
+							   G -> (const  ident  funcall (expr))
+const expression			expr -> const
+variable access				expr -> identifier
+enclosed expression			expr -> ( expr )
+cast expressopm				expr -> ( type ) expr
+
+expression statement		stmt -> expr;
+assignment statement		stmt -> expr = expr;
+compound statement			stmt -> { |stmt|* }
+conditional statement		stmt -> if (expr) stmt else stmt
+while statement				stmt -> while (expr) stmt
+for statement				stmt -> for (expr; expr; expr) stmt
+break statement				stmt -> break;
+return statement			stmt -> return expr?;
+vardecl statement			stmt -> vardecl;

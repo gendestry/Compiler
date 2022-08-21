@@ -5,11 +5,11 @@
 void Logger::debug(const std::string& msg) {
 	if(!debugEnabled) return;
 
-	std::cout << Font::italic << msg << Font::reset << std::endl;
+	std::cout << msg << std::endl;
 }
 
 void Logger::log(const std::string& msg) {
-	std::cout << msg << std::endl;
+	std::cout << Font::italic << msg << Font::reset << std::endl;
 }
 
 void Logger::error(const std::string& msg) {

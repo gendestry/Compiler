@@ -4,7 +4,9 @@
 #include <ctype.h>
 
 
-Lexan::Lexan() {}
+Lexan::Lexan() {
+	Logger::getInstance().log("Phase 1: Lexical analysis");
+}
 
 bool Lexan::parse(const std::string& file) {
 	tokens.clear();
@@ -115,8 +117,20 @@ bool Lexan::parseLine(std::string& line, int i) {
 				}
 				break;
 
-			case '&' : tokens.emplace_back(Token::AND, i, j); break;
-			case '|' : tokens.emplace_back(Token::OR, i, j); break;
+			case '&' : 
+				if (j + 1 < line.size() && line[j + 1] == '&') {
+					tokens.emplace_back(Token::ANDAND, i, j++, 1);
+				} else {
+					tokens.emplace_back(Token::AND, i, j);
+				}
+				break;
+			case '|' : 
+				if (j + 1 < line.size() && line[j + 1] == '|') {
+					tokens.emplace_back(Token::OROR, i, j++, 1);
+				} else {
+					tokens.emplace_back(Token::OR, i, j);
+				}
+				break;
 			case '^' : tokens.emplace_back(Token::XOR, i, j); break;
 
 			case '[' : tokens.emplace_back(Token::LBRACKET, i, j); break;
@@ -132,6 +146,17 @@ bool Lexan::parseLine(std::string& line, int i) {
 			case '?' : tokens.emplace_back(Token::QUESTION, i, j); break;
 			case '~' : tokens.emplace_back(Token::ELLIPSIS, i, j); break;
 			case '.' : tokens.emplace_back(Token::DOT, i, j); break;
+
+			case '\'':
+				if(j + 2 < line.size() && isalnum(line[j + 1]) && line[j + 2 == '\'']) {
+					tokens.emplace_back(Token::CHARACTER, i, j+1, 0, line.substr(j+1, 1));
+					j += 2;
+				}
+				else {
+					Logger::getInstance().error("Lexan: Invalid single quote on line %d[%d]\n", (i+1), j);
+					return false;
+				}
+				break;
 
 			default:
 				start = j;
@@ -158,6 +183,8 @@ bool Lexan::parseLine(std::string& line, int i) {
 						tokens.emplace_back(Token::BOOL, i, j, 3); j+=3;
 					} else if (checkKeyword(j, "null")) {
 						tokens.emplace_back(Token::NIL, i, j, 3); j+=3;
+					} else if (checkKeyword(j, "float")) {
+						tokens.emplace_back(Token::FLOAT, i, j, 4); j+=4;
 					} else if (checkKeyword(j, "true")) {
 						tokens.emplace_back(Token::TRUE, i, j, 3); j+=3;
 					} else if (checkKeyword(j, "false")) {
@@ -173,6 +200,14 @@ bool Lexan::parseLine(std::string& line, int i) {
 						tokens.emplace_back(Token::FOR, i, j, 2); j+=2;
 					} else if (checkKeyword(j, "break")) {
 						tokens.emplace_back(Token::BREAK, i, j, 4); j+=4;
+					} else if (checkKeyword(j, "struct")) {
+						tokens.emplace_back(Token::STRUCT, i, j, 5); j+=5;
+					} else if (checkKeyword(j, "sizeof")) {
+						tokens.emplace_back(Token::SIZEOF, i, j, 5); j+=5;
+					} else if (checkKeyword(j, "typedef")) {
+						tokens.emplace_back(Token::TYPEDEF, i, j, 6); j+=6;
+					} else if (checkKeyword(j, "return")) {
+						tokens.emplace_back(Token::RETURN, i, j, 5); j+=5;
 					} else {
 						for(; j < line.size() && isalpha(line[j]); j++);
 						j--;

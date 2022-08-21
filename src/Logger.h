@@ -22,14 +22,17 @@ public:
 
 	template<typename... Args>
 	void debug(std::string format, Args... args) {
-		format.insert(0, Font::italic);
-		format.append(Font::reset);
+		if (!debugEnabled) return;
+		format.append("\n");
 
 		printf(format.c_str(), args...);
 	}
 
 	template<typename... Args>
 	void log(std::string format, Args... args) {
+		format.insert(0, Font::italic);
+		format.append(Font::reset);
+		format.append("\n");
 		printf(format.c_str(), args...);
 	}
 
@@ -37,6 +40,7 @@ public:
 	void error(std::string format, Args... args) {
 		format.insert(0, Font::fred);
 		format.append(Font::reset);
+		format.append("\n");
 
 		printf(format.c_str(), args...);
 	}
