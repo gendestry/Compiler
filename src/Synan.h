@@ -2,16 +2,23 @@
 #include <vector>
 #include "Lexan.h"
 #include "Logger.h"
+#include "Ast.h"
 
 
 class Synan {
 private:
 	const std::vector<Token>& tokens;
+	// std::vector<Ast*> ast;
 	int pos = 0;
 public:
 	Synan(Lexan& lexan) : tokens(lexan.getTokens()) {
 		Logger::getInstance().log("Phase 2: Syntax analysis");
 	}
+
+	// ~Synan() {
+	// 	for(auto& ast : this->ast)
+	// 		delete ast;
+	// }
 
 	bool parse();
 	

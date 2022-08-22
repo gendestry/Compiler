@@ -51,6 +51,12 @@ bool Synan::isVarDecl() {
 			return false;
 		}
 
+		// ast.emplace_back();
+
+		// print ast
+		// for(auto& ast : this->ast) {
+		// 	std::cout << ast->toString() << std::endl;
+		// }
 		return true;
 	}
 
@@ -147,6 +153,7 @@ bool Synan::isType() {
 bool Synan::isAtomicType() {
 	int oldPos = pos;
 	if(isTokenType(Token::CHAR) || isTokenType(Token::INT) || isTokenType(Token::VOID) || isTokenType(Token::FLOAT) || isTokenType(Token::BOOL)) {
+		// ast.push_back(new AstAtomType((AstAtomType::Type)tokens[pos - 1].getType()));
 		return true;
 	}
 
@@ -155,13 +162,19 @@ bool Synan::isAtomicType() {
 }
 
 bool Synan::isNamedType() {
-	return isTokenType(Token::IDENTIFIER);
+	if(isTokenType(Token::IDENTIFIER)) {
+		// ast.push_back(new AstNamedType(tokens[pos - 1].getText()));
+		return true;
+	}
+
+	return false;
 }
 
 bool Synan::isArrayType() {
 	int oldPos = pos;
 
 	if((isAtomicType() || isNamedType()) && isTokenType(Token::LBRACKET) && isExpr() && isTokenType(Token::RBRACKET)) {
+		// ast.push_back(new AstArrayType((AstType*)ast[ast.size() - 2], (AstExpr*)ast[ast.size() - 1]));
 		return true;
 	}
 
@@ -178,6 +191,7 @@ bool Synan::isPointerType() {
 			counter++;
 		}
 		if(counter > 0) {
+			// ast.push_back(new AstPtrType((AstType*)ast[ast.size() - 1], counter));
 			return true;
 		}
 	}
