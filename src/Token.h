@@ -5,7 +5,7 @@
 
 class Token {
 public:
-	const std::vector<std::string> tokenNames = {"ID", "INT", "CHAR", "BOOL", "VOID", "FLOAT", "NIL", "PLUS", "PPLUS", "MINUS", "MMINUS", "MULTIPLY", "DIVIDE", "MODULO", "ASSIGN", "EQUAL", "NOT_EQUAL", "LESS_THAN", "LESS_THAN_EQUAL", "GREATER_THAN", "GREATER_THAN_EQUAL", "AND", "OR", "NOT", "XOR", "ANDAND", "OROR", "LPAREN", "RPAREN", "LBRACE", "RBRACE", "LBRACKET", "RBRACKET", "COMMA", "SEMICOLON", "COLON", "QUESTION", "ELLIPSIS", "DOT", "NUMBER", "FNUMBER" , "CHARACTER", "STRING", "TRUE", "FALSE", "IF", "ELSE", "WHILE", "FOR", "BREAK", "STRUCT", "SIZEOF", "TYPEDEF", "RETURN", "ERROR" };
+	static std::vector<std::string> tokenNames;
 public:
 	enum TokenType {
 		IDENTIFIER,
@@ -69,6 +69,11 @@ public:
 		SIZEOF,
 		TYPEDEF,
 		RETURN,
+		PTR,
+
+		NEW,
+		DEL,
+		CONTINUE,
 
 		ERROR
 	};
@@ -84,7 +89,7 @@ public:
 	std::string getName() const { return tokenNames[(int)type]; }
 
 	friend std::ostream& operator<<(std::ostream& os, const Token& token) {
-		os << token.getName() << "(" << token.start << "," << token.start + token.len <<  ")" << token.getLine();
+		os << token.getName() << "(" << token.start << "," << token.start + token.len <<  ")";
 		return os;
 	}
 private:

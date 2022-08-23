@@ -5,7 +5,7 @@
 
 
 Lexan::Lexan() {
-	Logger::getInstance().log("Phase 1: Lexical analysis");
+	Logger::getInstance().log("#i#grnPhase 1: Lexical analysis#r");
 }
 
 bool Lexan::parse(const std::string& file) {
@@ -71,7 +71,10 @@ bool Lexan::parseLine(std::string& line, int i) {
 			case '-' :
 				if (j + 1 < line.size() && line[j + 1] == '-') {
 					tokens.emplace_back(Token::MMINUS, i, j++, 1);
-				} else {
+				} else if (j + 1 < line.size() && line[j + 1] == '>') {
+					tokens.emplace_back(Token::PTR, i, j++, 1);
+				}
+				else {
 					tokens.emplace_back(Token::MINUS, i, j);
 				}
 				break;
@@ -223,8 +226,14 @@ bool Lexan::parseLine(std::string& line, int i) {
 						tokens.emplace_back(Token::TYPEDEF, i, j, 6); j+=6;
 					} else if (checkKeyword(j, "return")) {
 						tokens.emplace_back(Token::RETURN, i, j, 5); j+=5;
+					} else if (checkKeyword(j, "continue")) {
+						tokens.emplace_back(Token::CONTINUE, i, j, 7); j+=7;
+					} else if (checkKeyword(j, "new")) {
+						tokens.emplace_back(Token::NEW, i, j, 2); j+=2;
+					} else if (checkKeyword(j, "delete")) {
+						tokens.emplace_back(Token::DEL, i, j, 5); j+=5;
 					} else {
-						for(; j < line.size() && isalpha(line[j]); j++);
+						for(; j < line.size() && isalnum(line[j]); j++);
 						j--;
 						tokens.emplace_back(Token::IDENTIFIER, i, start, j - start, line.substr(start, j - start + 1));
 					}

@@ -26,15 +26,37 @@
 // 	return (x + y) * 5;
 // }
 
-int x = 123;
+// int x = x.joze.janez;
+// int y = ++(y->joze.janez++);
+int z = x[y + 5 * 4 | 3]->name;
 
-int y() {
+int a = a * 3 * b;
+// int b = a / 3 * 4;
+
+int c = (x + 3 * (2 + 5)) * 4;
+int x = b - 4 <= 3;
+int d = x + y + z;
+
+int e = x && y + 4;
+int f = x | f ^ y + 4;
+// int sth2 = 3 + 5 + y;
+ 
+int main() {
+	// int a;
+	int a;
+	// call(sth, sth);
+	// call(sth, sth2);
+}
+
+// int y() {
+// 	int x = (int)3;
+// }
 	// x = 6;
-	int x = 3;
 	// z(x, 123.5);
-	while(x) {
-		return y;
-	}
+	// while(x) {
+	// 	return y;
+	// }
+
 	// if(x) {
 	// 	penis;
 	// 	rupa;
@@ -43,7 +65,6 @@ int y() {
 	// 	neki(1,2);
 	// 	joze;
 	// }
-}
 // char c = 'c';
 // char* x = "string";
 // bool sth = true;
@@ -72,4 +93,15 @@ int y() {
 // 			return;
 // 		}
 // 	}
+// }
+
+// int add(int x, int y) {
+// 	return x + y;
+// }
+
+// int main() {
+// 	int a = 3;
+// 	int b = 4;
+// 	int c = add(a, b);
+// 	return 0;
 // }

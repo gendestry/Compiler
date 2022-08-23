@@ -51,6 +51,9 @@ public:
 		replaceAll(format, "#b", Font::bold);
 		replaceAll(format, "#u", Font::underline);
 		replaceAll(format, "#r", Font::reset);
+		replaceAll(format, "#red", Font::fred);
+		replaceAll(format, "#grn", Font::fgreen);
+		replaceAll(format, "#blu", Font::fblue);
 
 		printf(format.c_str(), args...);
 	}

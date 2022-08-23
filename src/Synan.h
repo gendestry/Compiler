@@ -17,7 +17,7 @@ private:
 	std::vector<AstStmt*> stmts;
 public:
 	Synan(Lexan& lexan) : tokens(lexan.getTokens()) {
-		Logger::getInstance().log("Phase 2: Syntax analysis");
+		Logger::getInstance().log("#i#grnPhase 2: Syntax analysis#r");
 	}
 
 	~Synan();
@@ -42,7 +42,6 @@ private:
 	bool isVariableAccess();
 	bool isFunctionCall();
 	bool isEnclosedExpr();
-	bool isCastExpr();
 	bool isInfixExpr();
 
 	bool isInfixA();

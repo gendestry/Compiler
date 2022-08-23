@@ -1,5 +1,7 @@
 #include "Synan.h"
 
+
+
 Synan::~Synan() {
 	for (AstDecl* decl : decls)
 		delete decl;
@@ -12,16 +14,10 @@ Synan::~Synan() {
 }
 
 bool Synan::parse() {
-	int counter = 0;
 	while(pos < tokens.size()) {
 		if(!isDecl()) {
 			return false;
 		}
-
-		// std::cout << decls.back() ->toString() << std::endl;
-
-		if(counter++ > 10000)
-			break;
 	}
 
 	std::cout << "\nSyntax:" << std::endl;
@@ -30,24 +26,28 @@ bool Synan::parse() {
 		std::cout << decl->toString() << std::endl;
 	}
 
+	// for(AstExpr* expr : exprs) {
+	// 	std::cout << expr->toString() << std::endl;
+	// }
+
 	return true;
 }
 
 bool Synan::isDecl() {
 	if(isFunDecl()) {
-		Logger::getInstance().log("Fun decl");
+		Logger::getInstance().debug("Fun decl");
 		return true;
 	}
 	else if(isVarDecl()) {
-		Logger::getInstance().log("Var decl");
+		Logger::getInstance().debug("Var decl");
 		return true;
 	}
 	else if(isTypeDecl()) {
-		Logger::getInstance().log("Type decl");
+		Logger::getInstance().debug("Type decl");
 		return true;
 	}
 	else if(isStructDecl()) {
-		Logger::getInstance().log("Struct decl");
+		Logger::getInstance().debug("Struct decl");
 		return true;
 	}
 	
@@ -93,7 +93,7 @@ bool Synan::isFunDecl() {
 			}
 			if(isCompoundStmt()) {
 				decls.push_back(new AstFunDecl(name, types.back(), (parDecl ? (AstParDecl*)decls.back() : nullptr), stmts.back()));
-				Logger::getInstance().log("Compound stmt");
+				Logger::getInstance().debug("Compound stmt");
 				return true;
 			}
 		}
@@ -116,7 +116,7 @@ bool Synan::isParDecl() {
 			varDecls.emplace_back(tokens[pos - 1].getText(), types.back());
 		}
 
-		Logger::getInstance().log("Par decl");
+		Logger::getInstance().debug("Par decl");
 		decls.push_back(new AstParDecl(varDecls));
 		return true;
 	}
@@ -167,19 +167,19 @@ bool Synan::isStructDecl() {
 
 bool Synan::isType() {
 	if(isPointerType()) {
-		Logger::getInstance().log("Pointer type");
+		Logger::getInstance().debug("Pointer type");
 		return true;
 	}
 	else if(isArrayType()) {
-		Logger::getInstance().log("Array type");
+		Logger::getInstance().debug("Array type");
 		return true;
 	}
 	else if(isAtomicType()) {
-		Logger::getInstance().log("Atomic type");
+		Logger::getInstance().debug("Atomic type");
 		return true;
 	}
 	else if(isNamedType()) {
-		Logger::getInstance().log("Named type");
+		Logger::getInstance().debug("Named type");
 		return true;
 	}
 
@@ -240,27 +240,19 @@ bool Synan::isPointerType() {
 
 bool Synan::isExpr() {
 	if(isFunctionCall()) {
-		Logger::getInstance().log("Function call");
+		Logger::getInstance().debug("Function call");
 		return true;
 	}
 	else if(isInfixExpr()) {
-		Logger::getInstance().log("XFix expr");
+		Logger::getInstance().debug("XFix expr");
 		return true;
 	}
 	else if(isConstExpr()) {
-		Logger::getInstance().log("Const expr");
+		Logger::getInstance().debug("Const expr");
 		return true;
 	}
 	else if(isVariableAccess()) {
-		Logger::getInstance().log("Variable access");
-		return true;
-	}
-	else if(isEnclosedExpr()) {
-		Logger::getInstance().log("Enclosed expr");
-		return true;
-	}
-	else if(isCastExpr()) {
-		Logger::getInstance().log("Cast expr");
+		Logger::getInstance().debug("Variable access");
 		return true;
 	}
 
@@ -337,17 +329,6 @@ bool Synan::isEnclosedExpr() {
 	return false;
 }
 
-bool Synan::isCastExpr() {
-	int oldPos = pos;
-
-	if(isTokenType(Token::LPAREN) && (isAtomicType() || isNamedType() || isPointerType()) && isTokenType(Token::RPAREN) && isExpr()) {
-		return true;
-	}
-
-	pos = oldPos;
-	return false;
-}
-
 bool Synan::isInfixExpr() {
 	int oldPos = pos;
 
@@ -371,9 +352,12 @@ bool Synan::isInfixA() {
 bool Synan::isInfixA_() {
 	Logger::getInstance().debug("Infix A_: %d", pos);
 	if(isTokenType(Token::ANDAND) || isTokenType(Token::OROR)) {
-		if(isInfixA() && isInfixA_()) {
-			Logger::getInstance().log("Infix expr: binbin", pos);
-			// add class
+		Token::TokenType type = tokens[pos - 1].getType();
+		AstExpr* expr = exprs.back();
+		if(isInfixA()) {
+			Logger::getInstance().debug("Infix expr: binbin", pos);
+			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			isInfixA_();
 			return true;
 		}
 
@@ -393,10 +377,13 @@ bool Synan::isInfixB() {
 
 bool Synan::isInfixB_() {
 	Logger::getInstance().debug("Infix B_: %d", pos);
-	if(isTokenType(Token::OR) || isTokenType(Token::AND)) {
-		if(isInfixB() && isInfixB_()) {
-			Logger::getInstance().log("Infix expr: bin", pos);
-			// add class
+	if(isTokenType(Token::OR) || isTokenType(Token::AND) || isTokenType(Token::XOR)) {
+		Token::TokenType type = tokens[pos - 1].getType();
+		AstExpr* expr = exprs.back();
+		if(isInfixB()) {
+			Logger::getInstance().debug("Infix expr: bin", pos);
+			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			isInfixB_();
 			return true;
 		}
 
@@ -417,9 +404,12 @@ bool Synan::isInfixC() {
 bool Synan::isInfixC_() {
 	Logger::getInstance().debug("Infix C_: %d", pos);
 	if(isTokenType(Token::EQUAL) || isTokenType(Token::NOT_EQUAL) || isTokenType(Token::LESS_THAN) || isTokenType(Token::LESS_THAN_EQUAL) || isTokenType(Token::GREATER_THAN) || isTokenType(Token::GREATER_THAN_EQUAL)) {
-		if(isInfixC() && isInfixC_()) {
-			Logger::getInstance().log("Infix expr: comp", pos);
-			// add class
+		Token::TokenType type = tokens[pos - 1].getType();
+		AstExpr* expr = exprs.back();
+		if(isInfixC()) {
+			Logger::getInstance().debug("Infix expr: comp", pos);
+			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			isInfixC_();
 			return true;
 		}
 
@@ -439,10 +429,13 @@ bool Synan::isInfixD() {
 
 bool Synan::isInfixD_() {
 	Logger::getInstance().debug("Infix D_: %d", pos);
-	if(isTokenType(Token::PLUS) || isTokenType(Token::MINUS) || isTokenType(Token::XOR)) {
-		if(isInfixD() && isInfixD_()) {
-			Logger::getInstance().log("Infix expr: add\n", pos);
-			// add class
+	if(isTokenType(Token::PLUS) || isTokenType(Token::MINUS)) {
+		Token::TokenType type = tokens[pos - 1].getType();
+		AstExpr* expr = exprs.back();
+		if(isInfixD()) {
+			Logger::getInstance().debug("Infix expr: add\n", pos);
+			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			isInfixD_();
 			return true;
 		}
 
@@ -456,6 +449,7 @@ bool Synan::isInfixE() {
 	int oldPos = pos;
 
 	Logger::getInstance().debug("Infix E: %d", pos);
+	bool prefix = false;
 	if(isTokenType(Token::PLUS)
 		|| isTokenType(Token::MINUS)
 		|| isTokenType(Token::PPLUS)
@@ -463,16 +457,26 @@ bool Synan::isInfixE() {
 		|| isTokenType(Token::NOT)
 		|| isTokenType(Token::ELLIPSIS)
 		|| isTokenType(Token::MULTIPLY)
-		|| isTokenType(Token::AND)
-		|| (isTokenType(Token::LPAREN) && isType() && isTokenType(Token::RPAREN)))
+		|| isTokenType(Token::AND)) 
 	{
+		Token::TokenType type = tokens[pos - 1].getType();
 		if(isInfixE()) {
-			Logger::getInstance().log("Prefix expr", pos);
+			AstExpr* expr = exprs.back();
+			exprs.pop_back();
+			exprs.push_back(new AstPrefixExpr((AstPrefixExpr::Prefix)type, expr));
+
+			Logger::getInstance().debug("Prefix expr", pos);
 			return true;
 		}
-		
-//int a = *(++a + 3);
-		return false;
+	} else if (isTokenType(Token::LPAREN) && isType() && isTokenType(Token::RPAREN)){
+		AstType* type = types.back();
+
+		if(isInfixE()) {
+			AstExpr* expr = exprs.back();
+			exprs.push_back(new AstCastExpr(type, expr));
+			Logger::getInstance().debug("Cast expr", pos);
+			return true;
+		}		
 	}
 
 	pos = oldPos;
@@ -487,9 +491,12 @@ bool Synan::isInfixE() {
 bool Synan::isInfixE_() {
 	Logger::getInstance().debug("Infix E_: %d", pos);
 	if(isTokenType(Token::MULTIPLY) || isTokenType(Token::DIVIDE) || isTokenType(Token::MODULO)) { 
-		if(isInfixE() && isInfixE_()) {
-			Logger::getInstance().log("Infix Expr: mul", pos);
-			// add class
+		Token::TokenType type = tokens[pos - 1].getType();
+		AstExpr* expr = exprs.back();
+		if(isInfixE()) {
+			Logger::getInstance().debug("Infix Expr: mul", pos);
+			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			isInfixE_();
 			return true;
 		}
 
@@ -509,27 +516,37 @@ bool Synan::isInfixF() {
 
 bool Synan::isInfixG_() {
 	Logger::getInstance().debug("Infix G_: %d", pos);
-	if(isVariableAccess() || isFunctionCall() || isEnclosedExpr()) {
-		if(isTokenType(Token::PPLUS) || isTokenType(Token::MMINUS)
-		|| (isTokenType(Token::DOT) && isTokenType(Token::IDENTIFIER))
-		|| (isTokenType(Token::MINUS) && isTokenType(Token::LESS_THAN) && isTokenType(Token::IDENTIFIER))
-		|| (isTokenType(Token::LBRACKET) && isExpr() && isTokenType(Token::RBRACKET))) {
-			if(isInfixG_()) {
-				Logger::getInstance().log("Postfix expr", pos);
-				return true;
-			}
-		}
-		
-		return false;
-	}
+	AstExpr* expr = exprs.back();
 
+	if((isTokenType(Token::PPLUS) || isTokenType(Token::MMINUS))) {
+		exprs.push_back(new AstPostfixExpr((AstPostfixExpr::Postfix)tokens[pos - 1].getType(), expr));
+		isInfixG_();
+	}
+	else if((isTokenType(Token::DOT) && isTokenType(Token::IDENTIFIER))) {
+		std::string name = tokens[pos - 1].getText();
+		exprs.push_back(new AstPostfixExpr((AstPostfixExpr::Postfix)tokens[pos - 2].getType(), expr, name));
+		isInfixG_();
+	}
+	else if((isTokenType(Token::PTR) && isTokenType(Token::IDENTIFIER))) {
+		std::string name = tokens[pos - 1].getText();
+		exprs.push_back(new AstPostfixExpr((AstPostfixExpr::Postfix)tokens[pos - 2].getType(), expr, name));
+		isInfixG_();
+	}
+	else if(isTokenType(Token::LBRACKET) && isExpr() && isTokenType(Token::RBRACKET)) {
+		AstExpr* index = exprs.back();
+		exprs.push_back(new AstPostfixExpr(AstPostfixExpr::ARRAYACCESS, expr, index));
+		isInfixG_();
+	}
+	
 	return true;
+
 }
 
 bool Synan::isInfixG() {
 	Logger::getInstance().debug("Infix G: %d", pos);
+
 	if((isConstExpr() || isVariableAccess() || isFunctionCall() || isEnclosedExpr())) {
-		Logger::getInstance().log("Infix const", pos);
+		Logger::getInstance().debug("Infix const", pos);
 		return true;
 	}
 
@@ -540,33 +557,33 @@ bool Synan::isInfixG() {
 
 bool Synan::isStmt() {
 	if(isAssignStmt()) {
-		Logger::getInstance().log("Assign stmt");
+		Logger::getInstance().debug("Assign stmt");
 		return true;
 	}
 	else if(isIfStmt()) {
-		Logger::getInstance().log("If stmt");
+		Logger::getInstance().debug("If stmt");
 		return true;
 	}
 	else if(isWhileStmt()) {
-		Logger::getInstance().log("While stmt");
+		Logger::getInstance().debug("While stmt");
 		return true;
 	}
 	else if(isReturnStmt()) {
-		Logger::getInstance().log("Return stmt");
+		Logger::getInstance().debug("Return stmt");
 		return true;
 	}
 	else if(isExprStmt()) {
-		Logger::getInstance().log("Expr stmt");
+		Logger::getInstance().debug("Expr stmt");
 		return true;
 	}
 	else if(isCompoundStmt()) {
-		Logger::getInstance().log("Compound stmt");
+		Logger::getInstance().debug("Compound stmt");
 		return true;
 	}
 	else if(isVarDecl()) {
 		stmts.push_back(new AstVarStmt(*(AstVarDecl*)decls.back()));
 		decls.pop_back();
-		Logger::getInstance().log("Var decl stmt");
+		Logger::getInstance().debug("Var decl stmt");
 		return true;
 	}
 
@@ -691,7 +708,7 @@ bool Synan::isReturnStmt() {
 }
 
 bool Synan::isTokenType(Token::TokenType type) { 
-	// Logger::getInstance().log("TOKEN[%d]: %d\n", type, pos);
+	// Logger::getInstance().debug("TOKEN[%d]: %d\n", type, pos);
 	if (tokens[pos].getType() == type) { 
 		pos += 1; 
 		return true;

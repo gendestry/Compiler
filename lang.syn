@@ -5,7 +5,7 @@ function declaration		decl -> type identifier(|type identifier|? |, type identif
 variable declaration		decl -> type identifier;
 variable declaration		decl -> type identifier = expr;
 type declaration			decl -> typedef type identifier;
-struct declaration			decl -> struct identifier { |decl;|* };
+struct declaration			decl -> struct identifier { |vardecl;|* };
 
 pointer type				type -> type*
 atomic type					type -> void | char | int | bool | float
@@ -14,9 +14,9 @@ array type					type -> type[expr]
 
 function call				expr -> identifier( |expr|? |, expr|* )
 infix expression			expr -> A A'		A' -> (&&  ||) A A' | empty
-							   A -> B B'		B' -> (&  |) B B' | empty
+							   A -> B B'		B' -> (&  |  ^) B B' | empty
 							   B -> C C'		C' -> (==  !=  <  >  <=  >=) C C' | empty
-							   C -> D D'		D' -> (+  -  ^) D D' | empty
+							   C -> D D'		D' -> (+  -) D D' | empty
 							   D -> E E'		E' -> (*  /  %) E E' | empty
 prefix expression			   E -> (++  --  +  -  !  *  &  ~  (type)) E | F
 postfix expression			   F -> G G'		G' -> (++  --  [expr]  .identifier  ->identifer) G' | empty
@@ -24,7 +24,7 @@ postfix expression			   F -> G G'		G' -> (++  --  [expr]  .identifier  ->identif
 const expression			expr -> const
 variable access				expr -> identifier
 enclosed expression			expr -> ( expr )
-cast expressopm				expr -> ( type ) expr
+cast expression				expr -> ( type ) expr
 
 expression statement		stmt -> expr;
 assignment statement		stmt -> expr = expr;
@@ -32,6 +32,7 @@ compound statement			stmt -> { |stmt|* }
 conditional statement		stmt -> if (expr) stmt else stmt
 while statement				stmt -> while (expr) stmt
 for statement				stmt -> for (expr; expr; expr) stmt
-break statement				stmt -> break;
 return statement			stmt -> return expr?;
 vardecl statement			stmt -> vardecl;
+break statement				stmt -> break;
+continue statement			stmt -> continue;

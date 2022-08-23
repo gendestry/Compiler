@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "Token.h"
+#include <iostream>
 
 class AstDecl;
 class AstType;
@@ -175,6 +176,91 @@ private:
 	std::vector<AstExpr*> args;
 };
 
+class AstCastExpr : public AstExpr {
+public:
+	AstCastExpr(AstType* type, AstExpr* expr) : type(type), expr(expr) {}
+
+	std::string toString() const override;
+private:
+	AstType* type;
+	AstExpr* expr;
+};
+
+class AstPrefixExpr : public AstExpr {
+public:
+	enum Prefix {
+		PLUS = 7,
+		PPLUS,
+		MINUS,
+		MMINUS,
+		DEREF,
+		NOT = 23,
+		ADDR = 21,
+		NEGATE = 37
+	};
+
+	AstPrefixExpr(Prefix prefix, AstExpr* expr) : op(prefix), expr(expr) {
+		
+	}
+
+	std::string toString() const override;
+private:
+	Prefix op;
+	AstExpr* expr;
+};
+
+class AstPostfixExpr : public AstExpr {
+public:
+	enum Postfix {
+		PPLUS = 8,
+		MMINUS = 10,
+		ACCESS = 38,
+		PTRACCESS = 54,
+		ARRAYACCESS = 100
+	};
+
+	AstPostfixExpr(Postfix postfix, AstExpr* expr) : expr(expr), op(postfix), type(0) {}
+	AstPostfixExpr(Postfix postfix, AstExpr* expr, std::string name) : expr(expr), op(postfix), name(name), type(1) {}
+	AstPostfixExpr(Postfix postfix, AstExpr* expr, AstExpr* index) : expr(expr), op(postfix), index(index), type(2) {}
+
+	std::string toString() const override;
+private:
+	int type = 0;
+	AstExpr* expr = nullptr;
+	AstExpr* index = nullptr;
+	Postfix op;
+	std::string name = "";
+};
+
+class AstBinaryExpr : public AstExpr {
+public:
+	enum Binary {
+		PLUS = 7,
+		MINUS = 9,
+		MUL = 11,
+		DIV,
+		MOD,
+		EQU = 15,
+		NEQ,
+		LESS,
+		LESS_EQU,
+		GREATER,
+		GREATER_EQU,
+		AND,
+		OR,
+		XOR = 24,
+		ANDAND,
+		OROR
+	};
+
+	AstBinaryExpr(Binary op, AstExpr* left, AstExpr* right) : left(left), op(op), right(right) {}
+
+	std::string toString() const override;
+private:
+	AstExpr* left;
+	Binary op;
+	AstExpr* right;
+};
 
 /* ----- STMTS ----- */
 

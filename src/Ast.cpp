@@ -129,6 +129,82 @@ std::string AstCallExpr::toString() const {
 	return str;
 }
 
+std::string AstCastExpr::toString() const {
+	return "AstCastExpr[" + type->toString() + ", " + expr->toString() + "]";
+}
+
+std::string AstPrefixExpr::toString() const {
+	std::string ret = "AstPrefixExpr[";
+	switch(op) {
+		case PLUS:
+			ret += "+";
+			break;
+		case MINUS:
+			ret += "-";
+			break;
+		case PPLUS:
+			ret += "++";
+			break;
+		case MMINUS:
+			ret += "--";
+			break;
+		case NOT:
+			ret += "!";
+			break;
+		case NEGATE:
+			ret += "~";
+			break;
+		case DEREF:
+			ret += "*";
+			break;
+		case ADDR:
+			ret += "&";
+			break;
+		default:
+			ret += std::to_string(op);
+	}
+	ret += ", " + expr->toString() + "]";
+	return ret;
+}
+
+std::string AstPostfixExpr::toString() const {
+	std::string ret = "AstPostfixExpr[";
+	if(type == 0) {
+		switch(op) {
+			case PPLUS:
+				ret += "++, ";
+				break;
+			case MMINUS:
+				ret += "--, ";
+				break;
+		}
+	}
+	else if(type == 1) {
+		switch(op) {
+			case ACCESS:
+				ret += ".access, ";
+				break;
+			case PTRACCESS:
+				ret += "->access, ";
+				break;
+		}
+		ret += name + ", ";
+	}
+	else if(type == 2)
+		ret += "array, ";
+
+	ret += expr->toString(); // + "]";
+	if(type == 2)
+		ret += ", " + index->toString();
+	ret += "]";
+	return ret;
+}
+
+std::string AstBinaryExpr::toString() const {
+	return "AstBinExpr[" + Token::tokenNames[(int)op] + ", " + left->toString() + ", " + right->toString() + "]";
+}
+
+
 
 std::string AstStmt::toString() const {
 	return "AstStmt";
