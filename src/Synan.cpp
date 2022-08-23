@@ -1,5 +1,16 @@
 #include "Synan.h"
 
+Synan::~Synan() {
+	for (AstDecl* decl : decls)
+		delete decl;
+	for (AstType* type : types)
+		delete type;
+	for (AstExpr* expr : exprs)
+		delete expr;
+	for (AstStmt* stmt : stmts)
+		delete stmt;
+}
+
 bool Synan::parse() {
 	int counter = 0;
 	while(pos < tokens.size()) {
@@ -7,16 +18,22 @@ bool Synan::parse() {
 			return false;
 		}
 
+		// std::cout << decls.back() ->toString() << std::endl;
+
 		if(counter++ > 10000)
 			break;
+	}
+
+	std::cout << "\nSyntax:" << std::endl;
+
+	for(AstDecl* decl : decls) {
+		std::cout << decl->toString() << std::endl;
 	}
 
 	return true;
 }
 
 bool Synan::isDecl() {
-	// Logger::getInstance().log("DECLS: %d\n", pos);
-
 	if(isFunDecl()) {
 		Logger::getInstance().log("Fun decl");
 		return true;
@@ -41,8 +58,11 @@ bool Synan::isVarDecl() {
 	int oldPos = pos;
 
 	if(isType() && isTokenType(Token::IDENTIFIER)) {
-		if(isTokenType(Token::ASSIGN) && isExpr()) {
+		std::string name = tokens[pos - 1].getText();
+		AstExpr* expr = nullptr;
 
+		if(isTokenType(Token::ASSIGN) && isExpr()) {
+			expr = exprs.back();
 		}
 
 		if(!isTokenType(Token::SEMICOLON)) {
@@ -51,12 +71,7 @@ bool Synan::isVarDecl() {
 			return false;
 		}
 
-		// ast.emplace_back();
-
-		// print ast
-		// for(auto& ast : this->ast) {
-		// 	std::cout << ast->toString() << std::endl;
-		// }
+		decls.push_back(new AstVarDecl(name, types.back(), expr));
 		return true;
 	}
 
@@ -67,19 +82,26 @@ bool Synan::isVarDecl() {
 bool Synan::isFunDecl() {
 	int oldPos = pos;
 	
-	if(isType() && isTokenType(Token::IDENTIFIER) && isTokenType(Token::LPAREN) && isParDecl() && isTokenType(Token::RPAREN)) {
-		if(isTokenType(Token::SEMICOLON)) {
-			return true;
+	if(isType() && isTokenType(Token::IDENTIFIER) && isTokenType(Token::LPAREN)) {
+		std::string name = tokens[pos - 2].getText();
+		bool parDecl = isParDecl();
+
+		if(isTokenType(Token::RPAREN)) {
+			if(isTokenType(Token::SEMICOLON)) {
+				decls.push_back(new AstFunDecl(name, types.back(), (parDecl ? (AstParDecl*)decls.back() : nullptr)));
+				return true;
+			}
+			if(isCompoundStmt()) {
+				decls.push_back(new AstFunDecl(name, types.back(), (parDecl ? (AstParDecl*)decls.back() : nullptr), stmts.back()));
+				Logger::getInstance().log("Compound stmt");
+				return true;
+			}
 		}
-		if(isCompoundStmt()) {
-			Logger::getInstance().log("Compound stmt");
-			return true;
-		}
+	} 
 		
 			// Logger::getInstance().error("Syntax error at line %d: missing function body.", tokens[pos-1].getLine());
 			// pos = oldPos;
 			// return false;
-	}
 
 	pos = oldPos;
 	return false;
@@ -87,12 +109,19 @@ bool Synan::isFunDecl() {
 
 bool Synan::isParDecl() {
 	if(isType() && isTokenType(Token::IDENTIFIER)) {
-		while(isTokenType(Token::COMMA) && isType() && isTokenType(Token::IDENTIFIER)) {}
+		std::vector<AstVarDecl> varDecls;
+		varDecls.emplace_back(tokens[pos - 1].getText(), types.back());
+		
+		while(isTokenType(Token::COMMA) && isType() && isTokenType(Token::IDENTIFIER)) {
+			varDecls.emplace_back(tokens[pos - 1].getText(), types.back());
+		}
+
 		Logger::getInstance().log("Par decl");
+		decls.push_back(new AstParDecl(varDecls));
 		return true;
 	}
 
-	return true;
+	return false;
 }
 
 bool Synan::isTypeDecl() {
@@ -104,6 +133,8 @@ bool Synan::isTypeDecl() {
 			pos = oldPos;
 			return false;
 		}
+
+		decls.push_back(new AstTypeDecl(tokens[pos - 2].getText(), types.back()));
 		return true;
 	}
 
@@ -115,11 +146,16 @@ bool Synan::isStructDecl() {
 	int oldPos = pos;
 	
 	if(isTokenType(Token::STRUCT) && isTokenType(Token::IDENTIFIER) && isTokenType(Token::LBRACE)) {
+		std::string name = tokens[pos - 2].getText();
+		std::vector<AstVarDecl> fields;
+
 		while(isVarDecl()) {
-			Logger::getInstance().log("Var decl");
+			fields.push_back(*(AstVarDecl*)decls.back());
+			decls.pop_back();
 		} 
 		
 		if(isTokenType(Token::RBRACE)) {
+			decls.push_back(new AstStructDecl(name, fields));
 			return true;
 		}
 	}
@@ -153,7 +189,7 @@ bool Synan::isType() {
 bool Synan::isAtomicType() {
 	int oldPos = pos;
 	if(isTokenType(Token::CHAR) || isTokenType(Token::INT) || isTokenType(Token::VOID) || isTokenType(Token::FLOAT) || isTokenType(Token::BOOL)) {
-		// ast.push_back(new AstAtomType((AstAtomType::Type)tokens[pos - 1].getType()));
+		types.push_back(new AstAtomType((AstAtomType::Type)tokens[pos - 1].getType()));
 		return true;
 	}
 
@@ -163,7 +199,7 @@ bool Synan::isAtomicType() {
 
 bool Synan::isNamedType() {
 	if(isTokenType(Token::IDENTIFIER)) {
-		// ast.push_back(new AstNamedType(tokens[pos - 1].getText()));
+		types.push_back(new AstNamedType(tokens[pos - 1].getText()));
 		return true;
 	}
 
@@ -174,7 +210,7 @@ bool Synan::isArrayType() {
 	int oldPos = pos;
 
 	if((isAtomicType() || isNamedType()) && isTokenType(Token::LBRACKET) && isExpr() && isTokenType(Token::RBRACKET)) {
-		// ast.push_back(new AstArrayType((AstType*)ast[ast.size() - 2], (AstExpr*)ast[ast.size() - 1]));
+		types.push_back(new AstArrayType(types.back(), exprs.back()));
 		return true;
 	}
 
@@ -191,7 +227,7 @@ bool Synan::isPointerType() {
 			counter++;
 		}
 		if(counter > 0) {
-			// ast.push_back(new AstPtrType((AstType*)ast[ast.size() - 1], counter));
+			types.push_back(new AstPtrType(types.back(), counter));
 			return true;
 		}
 	}
@@ -232,25 +268,56 @@ bool Synan::isExpr() {
 }
 
 bool Synan::isConstExpr() {
-	if(isTokenType(Token::NUMBER) || isTokenType(Token::CHARACTER) || isTokenType(Token::STRING) || isTokenType(Token::TRUE) || isTokenType(Token::FALSE)) {
+	if(isTokenType(Token::NUMBER)) {
+		exprs.push_back(new AstConstExpr(std::stoi(tokens[pos - 1].getText())));
+		return true;
+	}
+	else if(isTokenType(Token::FNUMBER)) {
+		exprs.push_back(new AstConstExpr(std::stof(tokens[pos - 1].getText())));
+		return true;
+	}
+	else if (isTokenType(Token::CHARACTER)) {
+		exprs.push_back(new AstConstExpr(tokens[pos - 1].getText()[0]));
+		return true;
+	}
+	else if (isTokenType(Token::TRUE) || isTokenType(Token::FALSE)) {
+		exprs.push_back(new AstConstExpr(tokens[pos - 1].getType() == Token::TRUE));
+		return true;
+	}
+	else if(isTokenType(Token::STRING)) {
+		exprs.push_back(new AstConstExpr(tokens[pos - 1].getText()));
+		return true;
+	}
+
+
+	return false;
+}
+
+bool Synan::isVariableAccess() {
+	if(isTokenType(Token::IDENTIFIER)) {
+		exprs.push_back(new AstNamedExpr(tokens[pos - 1].getText()));
 		return true;
 	}
 
 	return false;
 }
 
-bool Synan::isVariableAccess() {
-	return isTokenType(Token::IDENTIFIER);
-}
-
 bool Synan::isFunctionCall() {
 	int oldPos = pos;
 	if(isTokenType(Token::IDENTIFIER) && isTokenType(Token::LPAREN)) {
+		std::string name = tokens[pos - 2].getText();
+		std::vector<AstExpr*> args;
+
 		if(isExpr()) {
-			while(isTokenType(Token::COMMA) && isExpr()) {}
+			args.push_back(exprs.back());
+
+			while(isTokenType(Token::COMMA) && isExpr()) { 
+				args.push_back(exprs.back());
+			}
 		}
 
 		if(isTokenType(Token::RPAREN)) {
+			exprs.push_back(new AstCallExpr(name, args));
 			return true;
 		}
 	}
@@ -497,6 +564,8 @@ bool Synan::isStmt() {
 		return true;
 	}
 	else if(isVarDecl()) {
+		stmts.push_back(new AstVarStmt(*(AstVarDecl*)decls.back()));
+		decls.pop_back();
 		Logger::getInstance().log("Var decl stmt");
 		return true;
 	}
@@ -513,6 +582,8 @@ bool Synan::isExprStmt() {
 			pos = oldPos;
 			return false;
 		}
+
+		stmts.push_back(new AstExprStmt(exprs.back()));
 		return true;
 	}
 
@@ -530,6 +601,8 @@ bool Synan::isAssignStmt() {
 			return false;
 		}
 
+		stmts.push_back(new AstAssignStmt(exprs[exprs.size() - 2], exprs.back()));
+
 		return true;
 	}
 
@@ -543,10 +616,15 @@ bool Synan::isCompoundStmt() {
 	if(!isTokenType(Token::LBRACE))
 		return false;
 	
-	while(isStmt());
+	std::vector<AstStmt*> cstmts;
+	while(isStmt()) {
+		cstmts.push_back(stmts.back());
+	}
 
-	if(isTokenType(Token::RBRACE))
+	if(isTokenType(Token::RBRACE)) {
+		stmts.push_back(new AstCompStmt(cstmts));
 		return true;
+	}
 
 	pos = oldPos;
 	return false;
@@ -554,16 +632,23 @@ bool Synan::isCompoundStmt() {
 
 bool Synan::isIfStmt() {
 	int oldPos = pos;
-	if(isTokenType(Token::IF) && isEnclosedExpr() && isStmt()) {
-		if(isTokenType(Token::ELSE)) {
-			if(isStmt()) {
-				return true;
+	if(isTokenType(Token::IF) && isEnclosedExpr()) {
+		AstExpr* expr = exprs.back();
+
+		if(isStmt()) {
+			AstStmt* stmt = stmts.back();
+			if(isTokenType(Token::ELSE)) {
+				if(isStmt()) {
+					stmts.push_back(new AstIfStmt(expr, stmt, stmts.back()));
+					return true;
+				}
+
+				return false;
 			}
 
-			return false;
+			stmts.push_back(new AstIfStmt(expr, stmt));
+			return true;
 		}
-
-		return true;
 	}
 
 	pos = oldPos;
@@ -572,8 +657,12 @@ bool Synan::isIfStmt() {
 
 bool Synan::isWhileStmt() {
 	int oldPos = pos;
-	if(isTokenType(Token::WHILE) && isEnclosedExpr() && isStmt()) {
-		return true;
+	if(isTokenType(Token::WHILE) && isEnclosedExpr()) {
+		AstExpr* cond = exprs.back();
+		if(isStmt()) {
+			stmts.push_back(new AstWhileStmt(cond, stmts.back()));
+			return true;
+		}
 	}
 	pos = oldPos;
 	return false;
@@ -582,8 +671,9 @@ bool Synan::isWhileStmt() {
 bool Synan::isReturnStmt() {
 	int oldPos = pos;
 	if(isTokenType(Token::RETURN)) {
+		AstExpr* expr = nullptr;
 		if(isExpr()) {
-
+			expr = exprs.back();
 		}
 
 		if(!isTokenType(Token::SEMICOLON)) {
@@ -592,6 +682,7 @@ bool Synan::isReturnStmt() {
 			return false;
 		}
 
+		stmts.push_back(new AstReturnStmt(expr));
 		return true;
 	}
 

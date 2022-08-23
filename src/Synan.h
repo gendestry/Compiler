@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <memory>
 #include "Lexan.h"
 #include "Logger.h"
 #include "Ast.h"
@@ -8,20 +9,19 @@
 class Synan {
 private:
 	const std::vector<Token>& tokens;
-	// std::vector<Ast*> ast;
-	int pos = 0;
+	int pos = 0;						// current token position
+
+	std::vector<AstDecl*> decls;
+	std::vector<AstType*> types;
+	std::vector<AstExpr*> exprs;
+	std::vector<AstStmt*> stmts;
 public:
 	Synan(Lexan& lexan) : tokens(lexan.getTokens()) {
 		Logger::getInstance().log("Phase 2: Syntax analysis");
 	}
 
-	// ~Synan() {
-	// 	for(auto& ast : this->ast)
-	// 		delete ast;
-	// }
-
+	~Synan();
 	bool parse();
-	
 
 private:
 	bool isDecl();
@@ -71,6 +71,3 @@ private:
 
 	bool isTokenType(Token::TokenType type);
 };
-
-
-

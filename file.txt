@@ -26,11 +26,36 @@
 // 	return (x + y) * 5;
 // }
 
-int x = 0;
+int x = 123;
+
+int y() {
+	// x = 6;
+	int x = 3;
+	// z(x, 123.5);
+	while(x) {
+		return y;
+	}
+	// if(x) {
+	// 	penis;
+	// 	rupa;
+	// } 
+	// else {
+	// 	neki(1,2);
+	// 	joze;
+	// }
+}
+// char c = 'c';
+// char* x = "string";
+// bool sth = true;
+// bool other = false;
+// typedef penis neki;
+
+// int penis(char* sth, int other);
+// int govno();
 // int y;
 
 // struct sth {
-// 	int x;
+// 	char x;
 // 	int y;
 // }
 

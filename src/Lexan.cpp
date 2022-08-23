@@ -50,7 +50,7 @@ bool Lexan::parseLine(std::string& line, int i) {
 					c = line[j];
 
 					if(c == '"' && previous != '\\') {
-						tokens.emplace_back(Token::STRING, i, start, j - start, line.substr(start, j - start + 1));
+						tokens.emplace_back(Token::STRING, i, start, j - start, line.substr(start + 1, j - start - 1));
 						break;
 					}
 					previous = c;
@@ -162,13 +162,28 @@ bool Lexan::parseLine(std::string& line, int i) {
 				start = j;
 				// number
 				if (isdigit(c)) {
-					for(; j < line.size() && isdigit(line[j]); j++);
+					bool isFloat = false;
+					bool dot = false;
+					for(; j < line.size(); j++) {
+						if(line[j] == '.' && !dot) {
+							isFloat = true;
+							dot = true;
+							continue;
+						}
+						else if(line[j] == '.' && dot) { 
+							printTokens();
+							Logger::getInstance().error("Lexan: Invalid number on line %d[%d]\n", (i+1), j);
+							return false; 
+						}
+						if(!isdigit(line[j])) break;
+					}
+
 					if(isalpha(line[j])) {
 						Logger::getInstance().error("Lexan: Invalid number on line %d[%d]\n", (i+1), start);
 						return false;
 					}
 					j--;
-					tokens.emplace_back(Token::NUMBER, i, start, j - start, line.substr(start, j - start + 1));
+					tokens.emplace_back((isFloat ? Token::FNUMBER : Token::NUMBER), i, start, j - start, line.substr(start, j - start + 1));
 				}
 				// keywords and ids
 				else if (isalpha(c)) {

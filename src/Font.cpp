@@ -31,4 +31,4 @@ std::string Font::byColorCode(int r, int g, int b, bool fg) {
     std::stringstream ss;
     ss << "\x1B[" << (fg ? 3 : 4) << "8;2;" << r << ";" << g << ";"<< b << "m";
     return ss.str();
-} 
+}
