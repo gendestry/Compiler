@@ -215,7 +215,7 @@ std::string AstExprStmt::toString() const {
 }
 
 std::string AstAssignStmt::toString() const {
-	return "AstAssignStmt[" + left->toString() + " = " + right->toString() + "]";
+	return "AstAssignStmt[" + Token::tokenNames[(int)op] + ", " + left->toString() + ", " + right->toString() + "]";
 }
 
 std::string AstCompStmt::toString() const {

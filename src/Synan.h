@@ -42,6 +42,7 @@ private:
 	bool isVariableAccess();
 	bool isFunctionCall();
 	bool isEnclosedExpr();
+	bool isInPlaceExpr();
 	bool isInfixExpr();
 
 	bool isInfixA();

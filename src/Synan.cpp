@@ -611,16 +611,22 @@ bool Synan::isExprStmt() {
 bool Synan::isAssignStmt() {
 	int oldPos = pos;
 
-	if(isExpr() && isTokenType(Token::ASSIGN) && isExpr()) {
-		if(!isTokenType(Token::SEMICOLON)) {
-			Logger::getInstance().error("Syntax error line %d: expected ';'", tokens[pos].getLine());
-			pos = oldPos;
-			return false;
+	if(isExpr()) {// && isTokenType(Token::ASSIGN) && isExpr()) {
+		AstExpr* left = exprs.back();
+		if(isTokenType(Token::ASSIGN) || isTokenType(Token::PLUSEQU) || isTokenType(Token::MINUSEQU) || isTokenType(Token::MULTEQU) || isTokenType(Token::DIVEQU) || isTokenType(Token::MODEQU)) {
+			Token::TokenType type = tokens[pos - 1].getType();
+			if(isExpr()) {
+				AstExpr* right = exprs.back();
+				if(!isTokenType(Token::SEMICOLON)) {
+					Logger::getInstance().error("Syntax error line %d: expected ';'", tokens[pos].getLine());
+					pos = oldPos;
+					return false;
+				}
+
+				stmts.push_back(new AstAssignStmt(left, right, (AstAssignStmt::Assign)type));
+				return true;
+			}
 		}
-
-		stmts.push_back(new AstAssignStmt(exprs[exprs.size() - 2], exprs.back()));
-
-		return true;
 	}
 
 	pos = oldPos;

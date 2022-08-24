@@ -74,6 +74,12 @@ public:
 		NEW,
 		DEL,
 		CONTINUE,
+		
+		PLUSEQU,
+		MINUSEQU,
+		MULTEQU,
+		DIVEQU,
+		MODEQU,
 
 		ERROR
 	};

@@ -28,22 +28,36 @@
 
 // int x = x.joze.janez;
 // int y = ++(y->joze.janez++);
-int z = x[y + 5 * 4 | 3]->name;
-
-int a = a * 3 * b;
 // int b = a / 3 * 4;
 
-int c = (x + 3 * (2 + 5)) * 4;
-int x = b - 4 <= 3;
-int d = x + y + z;
+// int c = (x + 3 * (2 + 5)) * 4;
+// int x = b - 4 <= 3;
+// int d = x + y + z;
 
-int e = x && y + 4;
-int f = x | f ^ y + 4;
+// int e = x && y + 4;
+// int f = x | f ^ y + 4;
 // int sth2 = 3 + 5 + y;
+// int neki = x && &y || 5;
+// int z = x[y + 5 * 4 | 3]->name;
+
+// int a = a * 3 + 2 * b++;
  
 int main() {
+	int a = 0;
+	int b = 4;
+	// a += 3;
+	a * b = 3;
+	// a = b += 3;
 	// int a;
-	int a;
+	// int a;
+	// if (x == 3) {
+
+	// }
+
+	// while(x + 2 < 4) {
+	// 	x++;
+	// 	a = b + 1;
+	// }
 	// call(sth, sth);
 	// call(sth, sth2);
 }

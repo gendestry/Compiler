@@ -280,12 +280,22 @@ private:
 
 class AstAssignStmt : public AstStmt {
 public:
-	AstAssignStmt(AstExpr* left, AstExpr* right) : left(left), right(right) {}
+	enum Assign {
+		EQU = 15,
+		PLUS = 58,
+		MINUS,
+		MUL,
+		DIV,
+		MOD,
+	};
+
+	AstAssignStmt(AstExpr* left, AstExpr* right, Assign op = Assign::EQU) : left(left), right(right), op(op) {}
 
 	std::string toString() const override;
 private:
 	AstExpr* left;
 	AstExpr* right;
+	Assign op;
 };
 
 class AstCompStmt : public AstStmt {

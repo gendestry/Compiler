@@ -64,7 +64,11 @@ bool Lexan::parseLine(std::string& line, int i) {
 			case '+' : 
 				if (j + 1 < line.size() && line[j + 1] == '+') {
 					tokens.emplace_back(Token::PPLUS, i, j++, 1);
-				} else {
+				}
+				else if(j + 1 < line.size() && line[j + 1] == '=') {
+					tokens.emplace_back(Token::PLUSEQU, i, j++, 1);
+				} 
+				else {
 					tokens.emplace_back(Token::PLUS, i, j);
 				}
 				break;
@@ -74,18 +78,40 @@ bool Lexan::parseLine(std::string& line, int i) {
 				} else if (j + 1 < line.size() && line[j + 1] == '>') {
 					tokens.emplace_back(Token::PTR, i, j++, 1);
 				}
+				else if(j + 1 < line.size() && line[j + 1] == '=') {
+					tokens.emplace_back(Token::MINUSEQU, i, j++, 1);
+				} 
 				else {
 					tokens.emplace_back(Token::MINUS, i, j);
 				}
 				break;
-			case '*' : tokens.emplace_back(Token::MULTIPLY, i, j); break;
-			case '%' : tokens.emplace_back(Token::MODULO, i, j); break;
+			case '*' :
+				if(j + 1 < line.size() && line[j + 1] == '=') {
+					tokens.emplace_back(Token::MULTEQU, i, j++, 1);
+				} 
+				else {
+					tokens.emplace_back(Token::MULTIPLY, i, j);
+				}
+				break; 
+			case '%' :
+				if(j + 1 < line.size() && line[j + 1] == '=') {
+					tokens.emplace_back(Token::MODEQU, i, j++, 1);
+				} 
+				else {
+					tokens.emplace_back(Token::MODULO, i, j);
+				} 
+				break;
 			case '/' : 
 				if (j + 1 < line.size() && line[j + 1] == '/') {
 					done = true;
 					break;
 				}
-				tokens.emplace_back(Token::DIVIDE, i, j); break;
+				else if(j + 1 < line.size() && line[j + 1] == '=') {
+					tokens.emplace_back(Token::DIVEQU, i, j++, 1);
+				} 
+				else {
+					tokens.emplace_back(Token::DIVIDE, i, j);
+				}
 				break;
 			
 			case '=':
