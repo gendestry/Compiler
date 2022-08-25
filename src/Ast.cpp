@@ -1,4 +1,222 @@
 #include "Ast.h"
+#include "Logger.h"
+
+static int nameDepth = 0;
+
+bool check(std::string name, std::vector<Symb>& declaredAt) {
+	for (auto& symb : declaredAt) {
+		if (symb.name == name && symb.depth == nameDepth) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool AstVarDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {
+	if(phase == Phase::HEAD) {
+		if(check(name, declaredAt)) {
+			declaredAt.push_back({name, nameDepth, this});
+		}
+		else {
+			Logger::getInstance().error("Seman: Variable " + name + " already declared in this scope\n");
+			return false;
+		}
+	}
+	else {
+		if(!type->visitName(phase, declaredAt))
+			return false;
+		
+		if(expr && !expr->visitName(phase, declaredAt)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool AstTypeDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {
+	if(phase == Phase::HEAD) {
+		if(check(name, declaredAt)) {
+			declaredAt.push_back({name, nameDepth, this});
+		}
+		else {
+			Logger::getInstance().error("Seman: Type " + name + " already declared in this scope\n");
+			return false;
+		}
+	}
+	else {
+		if(!type->visitName(phase, declaredAt))
+			return false;
+	}
+
+	return true;
+}
+
+bool AstParDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {
+	if(phase == Phase::HEAD) {
+		for(auto& decl : params) {
+			if(!decl.visitName(phase, declaredAt)) {
+				return false;
+			}
+		}
+	}
+	else {
+		for(auto& decl : params) {
+			if(!decl.visitName(phase, declaredAt)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool AstFunDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {
+	if(phase == Phase::HEAD) {
+		if(check(name, declaredAt)) {
+			declaredAt.push_back({name, nameDepth, this});
+		}
+		else {
+			Logger::getInstance().error("Seman: Function " + name + " already declared in this scope\n");
+			return false;
+		}
+	}
+	else {
+		if(!type->visitName(phase, declaredAt))
+			return false;
+		
+		nameDepth++;
+
+		if(params && !params->visitName(phase, declaredAt))
+			return false;
+		
+		if(body && !body->visitName(phase, declaredAt))
+			return false;
+
+		nameDepth--;
+	}
+
+	return true;
+}
+
+bool AstStructDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {
+	if(phase == Phase::HEAD) {
+		if(check(name, declaredAt)) {
+			declaredAt.push_back({name, nameDepth, this});
+		}
+		else {
+			Logger::getInstance().error("Seman: Struct " + name + " already declared in this scope\n");
+			return false;
+		}
+	}
+	else {
+		// for(auto& decl : fields) {
+		// 	decl.visitName(phase, declaredAt);
+		// }
+	}
+}
+
+
+
+bool AstAtomType::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstNamedType::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstPtrType::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstArrayType::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+
+
+bool AstConstExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstNamedExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstCallExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstCastExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstPrefixExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstPostfixExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstBinaryExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+
+
+bool AstExprStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstAssignStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstCompStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstIfStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstWhileStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstReturnStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+bool AstVarStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+
+
+// bool AstVarDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstTypeDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstParDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstFunDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstStructDecl::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+
+
+// bool AstAtomType::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstNamedType::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstPtrType::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstArrayType::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+
+
+// bool AstConstExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstNamedExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstCallExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstCastExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstPrefixExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstPostfixExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstBinaryExpr::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+
+
+// bool AstExprStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstAssignStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstCompStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstIfStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstWhileStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstReturnStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+// bool AstVarStmt::visitName(Phase phase, std::vector<Symb>& declaredAt) {}
+
+
+
+std::string AstDecl::toString() const {
+	return "AstDecl";
+}
 
 std::string AstVarDecl::toString() const {
 	return "VarDecl[" + name + " : " + type->toString() + (expr ? " = " + expr->toString() : "") + "]";

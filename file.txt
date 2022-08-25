@@ -41,12 +41,18 @@
 // int z = x[y + 5 * 4 | 3]->name;
 
 // int a = a * 3 + 2 * b++;
- 
+int a = 10 + b;
+int b = 3;
+int b = 2;
+
 int main() {
-	int a = 0;
-	int b = 4;
+	while(x == 3) {
+		c = a + b * 6;
+	}
+	// int a = 0;
+	// int b = 4;
 	// a += 3;
-	a * b = 3;
+	// a * b = 3;
 	// a = b += 3;
 	// int a;
 	// int a;

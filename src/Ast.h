@@ -1,8 +1,9 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "Token.h"
 #include <iostream>
+#include "Token.h"
+#include "Symb.h"
 
 class AstDecl;
 class AstType;
@@ -11,6 +12,7 @@ class AstStmt;
 
 class Ast {
 public:
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) = 0;
 	virtual std::string toString() const = 0;
 };
 
@@ -18,15 +20,15 @@ public:
 
 class AstDecl : public Ast {
 private:
-	// std::string name;
-	// AstType* type;
 public:
-	// AstDecl(std::string name, AstType* type) : name(name), type(type) {}
+	virtual std::string toString() const override;
 };
 
 class AstVarDecl : public AstDecl {
 public:
 	AstVarDecl(std::string name, AstType* type, AstExpr* expr = nullptr) : name(name), type(type), expr(expr) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -39,6 +41,8 @@ class AstParDecl : public AstDecl {
 public:
 	AstParDecl(std::vector<AstVarDecl>params) : params(params) {}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	std::vector<AstVarDecl> params;
@@ -47,6 +51,8 @@ private:
 class AstFunDecl : public AstDecl {
 public:
 	AstFunDecl(std::string name, AstType* type, AstParDecl* params = nullptr, AstStmt* body = nullptr) : name(name), type(type), params(params), body(body) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -60,6 +66,8 @@ class AstTypeDecl : public AstDecl {
 public:
 	AstTypeDecl(std::string name, AstType* type) : name(name), type(type) {}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	AstType* type = nullptr;
@@ -69,6 +77,8 @@ private:
 class AstStructDecl : public AstDecl {
 public:
 	AstStructDecl(std::string name, std::vector<AstVarDecl> fields) : name(name), fields(fields) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -96,6 +106,8 @@ public:
 
 	AstAtomType(Type type) : type(type) {  }
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	Type type;
@@ -104,6 +116,8 @@ private:
 class AstNamedType : public AstType {
 public:
 	AstNamedType(std::string name) : name(name) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -114,6 +128,8 @@ class AstPtrType : public AstType {
 public:
 	AstPtrType(AstType* type, int depth) : type(type), depth(depth) {}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	AstType* type;
@@ -123,6 +139,8 @@ private:
 class AstArrayType : public AstType {
 public:
 	AstArrayType(AstType* type, AstExpr* expr) : type(type), expr(expr) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -145,6 +163,8 @@ public:
 	AstConstExpr(float value) : fvalue(value) { type = Token::FNUMBER; }
 	AstConstExpr(std::string value) : str(value) { type = Token::STRING;}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	Token::TokenType type;
@@ -161,6 +181,8 @@ class AstNamedExpr : public AstExpr {
 public:
 	AstNamedExpr(std::string name) : name(name) {}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	std::string name;
@@ -169,6 +191,8 @@ private:
 class AstCallExpr : public AstExpr {
 public:
 	AstCallExpr(std::string name, std::vector<AstExpr*> args) : name(name), args(args) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -179,6 +203,8 @@ private:
 class AstCastExpr : public AstExpr {
 public:
 	AstCastExpr(AstType* type, AstExpr* expr) : type(type), expr(expr) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -199,9 +225,9 @@ public:
 		NEGATE = 37
 	};
 
-	AstPrefixExpr(Prefix prefix, AstExpr* expr) : op(prefix), expr(expr) {
-		
-	}
+	AstPrefixExpr(Prefix prefix, AstExpr* expr) : op(prefix), expr(expr) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -222,6 +248,8 @@ public:
 	AstPostfixExpr(Postfix postfix, AstExpr* expr) : expr(expr), op(postfix), type(0) {}
 	AstPostfixExpr(Postfix postfix, AstExpr* expr, std::string name) : expr(expr), op(postfix), name(name), type(1) {}
 	AstPostfixExpr(Postfix postfix, AstExpr* expr, AstExpr* index) : expr(expr), op(postfix), index(index), type(2) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -255,6 +283,8 @@ public:
 
 	AstBinaryExpr(Binary op, AstExpr* left, AstExpr* right) : left(left), op(op), right(right) {}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	AstExpr* left;
@@ -272,6 +302,8 @@ public:
 class AstExprStmt : public AstStmt {
 public:
 	AstExprStmt(AstExpr* expr) : expr(expr) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -291,6 +323,8 @@ public:
 
 	AstAssignStmt(AstExpr* left, AstExpr* right, Assign op = Assign::EQU) : left(left), right(right), op(op) {}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	AstExpr* left;
@@ -302,6 +336,8 @@ class AstCompStmt : public AstStmt {
 public:
 	AstCompStmt(std::vector<AstStmt*> stmts) : stmts(stmts) {}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	std::vector<AstStmt*> stmts;
@@ -310,6 +346,8 @@ private:
 class AstIfStmt : public AstStmt {
 public:
 	AstIfStmt(AstExpr* cond, AstStmt* stmt, AstStmt* elseStmt = nullptr) : cond(cond), stmt(stmt), elseStmt(elseStmt) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:
@@ -322,6 +360,8 @@ class AstWhileStmt : public AstStmt {
 public:
 	AstWhileStmt(AstExpr* cond, AstStmt* stmt) : cond(cond), stmt(stmt) {}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	AstExpr* cond;
@@ -332,6 +372,8 @@ class AstReturnStmt : public AstStmt {
 public:
 	AstReturnStmt(AstExpr* expr) : expr(expr) {}
 
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
+
 	std::string toString() const override;
 private:
 	AstExpr* expr;
@@ -340,6 +382,8 @@ private:
 class AstVarStmt : public AstStmt {
 public:
 	AstVarStmt(AstVarDecl decl) : decl(decl) {}
+
+	virtual bool visitName(Phase phase, std::vector<Symb>& declaredAt) override;
 
 	std::string toString() const override;
 private:

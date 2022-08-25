@@ -17,11 +17,16 @@ private:
 	std::vector<AstStmt*> stmts;
 public:
 	Synan(Lexan& lexan) : tokens(lexan.getTokens()) {
-		Logger::getInstance().log("#i#grnPhase 2: Syntax analysis#r");
+		Logger::getInstance().log("#i#grnPhase 2: Syntax analysis#r\n");
 	}
 
 	~Synan();
 	bool parse();
+	void printDecls();
+
+	std::vector<AstDecl*>& getDecls() {
+		return decls;
+	}
 
 private:
 	bool isDecl();

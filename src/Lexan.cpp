@@ -5,7 +5,7 @@
 
 
 Lexan::Lexan() {
-	Logger::getInstance().log("#i#grnPhase 1: Lexical analysis#r");
+	Logger::getInstance().log("#i#grnPhase 1: Lexical analysis#r\n");
 }
 
 bool Lexan::parse(const std::string& file) {
@@ -276,7 +276,7 @@ bool Lexan::parseLine(std::string& line, int i) {
 }
 
 void Lexan::printTokens() {
-	int l = 0;
+	int l = tokens[0].getLine();
 	for(auto& t : tokens) {
 		if(l != t.getLine())
 			std::cout << std::endl;

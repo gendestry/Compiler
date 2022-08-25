@@ -16,21 +16,18 @@ Synan::~Synan() {
 bool Synan::parse() {
 	while(pos < tokens.size()) {
 		if(!isDecl()) {
+			Logger::getInstance().error("Syntax error at line %d[%d].", tokens[pos].getLine(), tokens[pos].getStart());
 			return false;
 		}
 	}
 
-	std::cout << "\nSyntax:" << std::endl;
+	return true;
+}
 
+void Synan::printDecls() {
 	for(AstDecl* decl : decls) {
 		std::cout << decl->toString() << std::endl;
 	}
-
-	// for(AstExpr* expr : exprs) {
-	// 	std::cout << expr->toString() << std::endl;
-	// }
-
-	return true;
 }
 
 bool Synan::isDecl() {
