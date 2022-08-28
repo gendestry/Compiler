@@ -41,14 +41,66 @@
 // int z = x[y + 5 * 4 | 3]->name;
 
 // int a = a * 3 + 2 * b++;
-int a = 10 + b;
-int b = 3;
-int b = 2;
+// int x = 0;
+// int a = 10 + b;
+// int b = 3;
 
-int main() {
-	while(x == 3) {
-		c = a + b * 6;
+// typedef int ty;
+// int* y;
+// ty* x;
+// int b = 2;
+
+// struct sth {
+// 	int a;
+// 	int b;
+// }
+
+// void denis(char ch) {
+// 	ch = 'a';
+// }
+int x = 3;
+
+int add(int a, int b) {
+	return a + b;
+}
+
+int y = x + 4;
+
+int main(int c) {
+	c = (char)(add(x, y));
+
+	if(c == 7) {
+		while(c > 4) {
+			c--;
+		}
+
+		return c;
 	}
+
+	return y;
+	// c = 'x';
+	// if(c == 'x') {
+		// int c = 'y';
+		// c;
+		// c = 'z';
+		// c;
+	// }
+	// ty* x;
+	// c = a + b;
+	// denis('x');
+	// int y;
+	// while(true) {
+	// 	y = 4;
+	// 	if(c == true) {
+	// 		return x;
+	// 	}
+	// }
+	// sth a;
+	// sth.a;
+	// int b;
+	// while(x == 3) {
+	// 	c = a + b * 6;
+	// }
 	// int a = 0;
 	// int b = 4;
 	// a += 3;

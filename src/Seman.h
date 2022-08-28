@@ -2,7 +2,7 @@
 #include <vector>
 #include "Logger.h"
 #include "Synan.h"
-#include "Symb.h"
+#include "NameResolver.h"
 
 class Seman {
 public:
@@ -10,11 +10,12 @@ public:
 		Logger::getInstance().log("#i#grnPhase 3: Semantic analysis#r\n");
 	}
 
-	bool nameResolver();
-	bool typeResolver();
-	bool lvalueResolver();
+	bool resolveNames();
+	bool resolveTypes();
+	bool resolveLValues();
 
 private:
 	std::vector<AstDecl*>& decls;
-	std::vector<Symb> declaredAt;
+	
+	NameResolver nameResolver;
 };

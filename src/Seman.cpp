@@ -1,21 +1,26 @@
 #include "Seman.h"
 
 
-
-bool Seman::nameResolver() {
+bool Seman::resolveNames() {
 	for(auto& decl : decls) {
-		decl->visitName(Phase::HEAD, declaredAt);
+		if(!decl->accept(&nameResolver, Phase::HEAD)) {
+			return false;
+		}
 	}
+
 	for(auto& decl : decls) {
-		decl->visitName(Phase::BODY, declaredAt);
+		if(!decl->accept(&nameResolver, Phase::BODY)) {
+			return false;
+		}
 	}
+
 	return true;
 }
 
-bool Seman::typeResolver() {
-	return true;
-}
+// bool Seman::typeResolver() {
+// 	return true;
+// }
 
-bool Seman::lvalueResolver() {
-	return true;
-}
+// bool Seman::lvalueResolver() {
+// 	return true;
+// }

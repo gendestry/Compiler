@@ -21,12 +21,13 @@ int main() {
 	synan.printDecls();
 
 	Seman seman(synan);
-	if(!seman.nameResolver())
+	if(!seman.resolveNames())
 		return -1;
+	
 
-	if(!seman.typeResolver())
-		return -1;
+	// if(!seman.typeResolver())
+	// 	return -1;
 
-	if(!seman.lvalueResolver())
-		return -1;
+	// if(!seman.lvalueResolver())
+	// 	return -1;
 }

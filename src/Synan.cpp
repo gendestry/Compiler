@@ -81,24 +81,33 @@ bool Synan::isFunDecl() {
 	
 	if(isType() && isTokenType(Token::IDENTIFIER) && isTokenType(Token::LPAREN)) {
 		std::string name = tokens[pos - 2].getText();
+		AstType* type = types.back();
 		bool parDecl = isParDecl();
 
 		if(isTokenType(Token::RPAREN)) {
 			if(isTokenType(Token::SEMICOLON)) {
-				decls.push_back(new AstFunDecl(name, types.back(), (parDecl ? (AstParDecl*)decls.back() : nullptr)));
+				AstParDecl* pDecl = nullptr;
+				if(parDecl) {
+					pDecl = (AstParDecl*)decls.back();
+					decls.pop_back();
+				}
+				
+				decls.push_back(new AstFunDecl(name, type, pDecl));
 				return true;
 			}
 			if(isCompoundStmt()) {
-				decls.push_back(new AstFunDecl(name, types.back(), (parDecl ? (AstParDecl*)decls.back() : nullptr), stmts.back()));
+				AstParDecl* pDecl = nullptr;
+				if(parDecl) {
+					pDecl = (AstParDecl*)decls.back();
+					decls.pop_back();
+				}
+				
+				decls.push_back(new AstFunDecl(name, type, pDecl, stmts.back()));
 				Logger::getInstance().debug("Compound stmt");
 				return true;
 			}
 		}
 	} 
-		
-			// Logger::getInstance().error("Syntax error at line %d: missing function body.", tokens[pos-1].getLine());
-			// pos = oldPos;
-			// return false;
 
 	pos = oldPos;
 	return false;
@@ -569,18 +578,18 @@ bool Synan::isStmt() {
 		Logger::getInstance().debug("Return stmt");
 		return true;
 	}
+	else if(isVarDecl()) {
+		stmts.push_back(new AstVarStmt(*(AstVarDecl*)decls.back()));
+		decls.pop_back();
+		Logger::getInstance().debug("Var decl stmt");
+		return true;
+	}
 	else if(isExprStmt()) {
 		Logger::getInstance().debug("Expr stmt");
 		return true;
 	}
 	else if(isCompoundStmt()) {
 		Logger::getInstance().debug("Compound stmt");
-		return true;
-	}
-	else if(isVarDecl()) {
-		stmts.push_back(new AstVarStmt(*(AstVarDecl*)decls.back()));
-		decls.pop_back();
-		Logger::getInstance().debug("Var decl stmt");
 		return true;
 	}
 
