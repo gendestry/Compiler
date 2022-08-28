@@ -169,7 +169,7 @@ bool NameResolver::visit(AstNamedType* namedType, Phase phase) {
 
 bool NameResolver::visit(AstPtrType* ptrType, Phase phase) {
 	if(phase == Phase::BODY) {
-		if(!ptrType->type->accept(this, phase)) {
+		if(!ptrType->ptrType->accept(this, phase)) {
 			return false;
 		}
 	}
@@ -179,7 +179,7 @@ bool NameResolver::visit(AstPtrType* ptrType, Phase phase) {
 
 bool NameResolver::visit(AstArrayType* arrayType, Phase phase) {
 	if(phase == Phase::BODY) {
-		if(!arrayType->type->accept(this, phase)) {
+		if(!arrayType->arrayType->accept(this, phase)) {
 			return false;
 		}
 
@@ -369,15 +369,5 @@ bool NameResolver::visit(AstReturnStmt* returnStmt, Phase phase) {
 }
 
 bool NameResolver::visit(AstVarStmt* varStmt, Phase phase) {
-	// if(phase == Phase::BODY) {
-	// 	if(!varStmt->accept(this, Phase::HEAD)) {
-	// 		return false;
-	// 	}
-		
-	// 	if(!varStmt->accept(this, Phase::BODY)) {
-	// 		return false;
-	// 	}
-	// }
-	// return true;
 	return varStmt->decl.accept(this, phase);
 }

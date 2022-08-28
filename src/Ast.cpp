@@ -63,9 +63,6 @@ std::string AstAtomType::toString() const {
 		case FLOAT:
 			ret += "float]";
 			break;
-		case NIL:
-			ret += "nil]";
-			break;
 	}
 
 	return ret;
@@ -76,11 +73,11 @@ std::string AstNamedType::toString() const {
 }
 
 std::string AstPtrType::toString() const {
-	return "PtrType[" + type->toString() + "," + std::to_string(depth) + "]";
+	return "PtrType[" + ptrType->toString() + "]";
 }
 
 std::string AstArrayType::toString() const {
-	return "ArrayType[" + type->toString() + "," + expr->toString() + "]";
+	return "ArrayType[" + arrayType->toString() + "," + expr->toString() + "]";
 }
 
 

@@ -59,6 +59,7 @@
 // 	ch = 'a';
 // }
 int x = 3;
+float z = 4.0;
 
 int add(int a, int b) {
 	return a + b;

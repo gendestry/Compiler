@@ -92,32 +92,34 @@ public:
 
 class AstType : public Ast {
 public:
-	virtual std::string toString() const override;
-};
-
-class AstAtomType : public AstType {
-public:
 	enum Type {
-		INT = 1,
+		INT,
 		CHAR,
 		BOOL,
 		VOID,
 		FLOAT,
-		NIL
+		NAMED,
+		PTR,
+		ARRAY
 	};
+public:
+	virtual std::string toString() const override;
+	Type type;
+};
 
-	AstAtomType(Type type) : type(type) {  }
+class AstAtomType : public AstType {
+public:
+	AstAtomType(Type atomType) { type = atomType; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
 public:
-	Type type;
 };
 
 class AstNamedType : public AstType {
 public:
-	AstNamedType(std::string name) : name(name) {}
+	AstNamedType(std::string name) : name(name) { type = NAMED; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -129,25 +131,24 @@ public:
 
 class AstPtrType : public AstType {
 public:
-	AstPtrType(AstType* type, int depth) : type(type), depth(depth) {}
+	AstPtrType(AstType* ptrType) : ptrType(ptrType) { type = PTR; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
 public:
-	AstType* type;
-	int depth = 0;
+	AstType* ptrType;
 };
 
 class AstArrayType : public AstType {
 public:
-	AstArrayType(AstType* type, AstExpr* expr) : type(type), expr(expr) {}
+	AstArrayType(AstType* arrayType, AstExpr* expr) : arrayType(arrayType), expr(expr) { type = ARRAY; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
 public:
-	AstType* type;
+	AstType* arrayType;
 	AstExpr* expr;
 };
 
@@ -156,6 +157,8 @@ public:
 class AstExpr : public Ast {
 public:
 	virtual std::string toString() const override;
+
+	AstType* ofType = nullptr;
 };
 
 class AstConstExpr : public AstExpr {

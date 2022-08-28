@@ -39,8 +39,7 @@ private:
 	bool isType();
 	bool isAtomicType();
 	bool isNamedType();
-	bool isArrayType();
-	bool isPointerType();
+	bool isPtrOrArrType();
 
 	bool isExpr();
 	bool isConstExpr();

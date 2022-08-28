@@ -172,12 +172,8 @@ bool Synan::isStructDecl() {
 
 
 bool Synan::isType() {
-	if(isPointerType()) {
-		Logger::getInstance().debug("Pointer type");
-		return true;
-	}
-	else if(isArrayType()) {
-		Logger::getInstance().debug("Array type");
+	if(isPtrOrArrType()) {
+		Logger::getInstance().debug("Ptr or arr type");
 		return true;
 	}
 	else if(isAtomicType()) {
@@ -194,13 +190,30 @@ bool Synan::isType() {
 
 bool Synan::isAtomicType() {
 	int oldPos = pos;
-	if(isTokenType(Token::CHAR) || isTokenType(Token::INT) || isTokenType(Token::VOID) || isTokenType(Token::FLOAT) || isTokenType(Token::BOOL)) {
-		types.push_back(new AstAtomType((AstAtomType::Type)tokens[pos - 1].getType()));
-		return true;
+
+	AstType::Type type;
+	if(isTokenType(Token::INT)) {
+		type = AstType::INT;
+	}
+	else if(isTokenType(Token::CHAR)) {
+		type = AstType::CHAR;
+	}
+	else if(isTokenType(Token::VOID)) {
+		type = AstType::VOID;
+	}
+	else if(isTokenType(Token::FLOAT)) {
+		type = AstType::FLOAT;
+	}
+	else if(isTokenType(Token::BOOL)) {
+		type = AstType::BOOL;
+	}
+	else {
+		pos = oldPos;
+		return false;
 	}
 
-	pos = oldPos;
-	return false;
+	types.push_back(new AstAtomType(type));
+	return true;
 }
 
 bool Synan::isNamedType() {
@@ -212,28 +225,31 @@ bool Synan::isNamedType() {
 	return false;
 }
 
-bool Synan::isArrayType() {
-	int oldPos = pos;
-
-	if((isAtomicType() || isNamedType()) && isTokenType(Token::LBRACKET) && isExpr() && isTokenType(Token::RBRACKET)) {
-		types.push_back(new AstArrayType(types.back(), exprs.back()));
-		return true;
-	}
-
-	pos = oldPos;
-	return false;
-}
-
-bool Synan::isPointerType() {
+bool Synan::isPtrOrArrType() {
 	int oldPos = pos;
 
 	if(isAtomicType() || isNamedType()) {
-		int counter = 0;
-		while(isTokenType(Token::MULTIPLY)) {
-			counter++;
+		bool flag = false;
+
+		while(true) {
+			AstType* type = types.back();
+			if(isTokenType(Token::LBRACKET) && isExpr() && isTokenType(Token::RBRACKET)) {
+				flag = true;
+
+				types.push_back(new AstArrayType(type, exprs.back()));
+
+			}
+			else if(isTokenType(Token::MULTIPLY)) {
+				flag = true;
+
+				types.push_back(new AstPtrType(type));
+			}
+			else {
+				break;
+			}
 		}
-		if(counter > 0) {
-			types.push_back(new AstPtrType(types.back(), counter));
+
+		if(flag) {
 			return true;
 		}
 	}
