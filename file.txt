@@ -67,8 +67,10 @@ int add(int a, int b) {
 
 int y = x + 4;
 
+
 int main(int c) {
 	c = (char)(add(x, y));
+
 
 	if(c == 7) {
 		while(c > 4) {

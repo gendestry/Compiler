@@ -4,14 +4,39 @@
 
 
 bool TypeResolver::visit(AstVarDecl* varDecl, Phase phase) {
+	if(!varDecl->type->accept(this, phase)) {
+		return false;
+	}
+
+	if(varDecl->expr && !varDecl->expr->accept(this, phase)) {
+		return false;
+	}
+
 	return true;
 }
 
 bool TypeResolver::visit(AstParDecl* parDecl, Phase phase) {
+	for(AstVarDecl& decl : parDecl->params) {
+		if(!decl.accept(this, phase)) {
+			return false;
+		}
+	}
+
 	return true;
 }
 
 bool TypeResolver::visit(AstFunDecl* funDecl, Phase phase) {
+	if(!funDecl->type->accept(this, phase)) {
+		return false;
+	}
+
+	if(funDecl->params && !funDecl->params->accept(this, phase)) {
+		return false;
+	}
+
+	if(funDecl->body && !funDecl->body->accept(this, phase)) {
+		return false;
+	}
 	return true;
 }
 
@@ -98,13 +123,21 @@ bool TypeResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 	switch(prefixExpr->op) {
 		case AstPrefixExpr::PPLUS:
 		case AstPrefixExpr::MMINUS:
+			if(prefixExpr->expr->ofType->type == AstType::PTR) {
+				prefixExpr->ofType = prefixExpr->expr->ofType;
+				return true;
+			}
+			else if(prefixExpr->expr->ofType->type == AstType::CHAR) {
+				prefixExpr->ofType = prefixExpr->expr->ofType;
+				return true;
+			}
 		case AstPrefixExpr::PLUS:
 		case AstPrefixExpr::MINUS:
 			if(prefixExpr->expr->ofType->type == AstType::INT) {
-				prefixExpr->ofType = new AstAtomType(AstType::INT);
+				prefixExpr->ofType = prefixExpr->expr->ofType;
 			}
 			else if(prefixExpr->expr->ofType->type == AstType::FLOAT) {
-				prefixExpr->ofType = new AstAtomType(AstType::FLOAT);
+				prefixExpr->ofType = prefixExpr->expr->ofType;
 			}
 			else {
 				Logger::getInstance().error("Type error: Invalid type for prefix operator %s", prefixExpr->toString().c_str());
@@ -113,7 +146,7 @@ bool TypeResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 			break;
 		case AstPrefixExpr::NOT:
 			if(prefixExpr->expr->ofType->type == AstType::BOOL) {
-				prefixExpr->ofType = new AstAtomType(AstType::BOOL);
+				prefixExpr->ofType = prefixExpr->expr->ofType;
 			}
 			else {
 				Logger::getInstance().error("Type error: Invalid type for prefix operator %s", prefixExpr->toString().c_str());
@@ -134,7 +167,7 @@ bool TypeResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 			break;
 		case AstPrefixExpr::NEGATE: // ~
 			if(prefixExpr->expr->ofType->type == AstType::INT) {
-				prefixExpr->ofType = new AstAtomType(AstType::INT);
+				prefixExpr->ofType = prefixExpr->expr->ofType;
 			}
 			else {
 				Logger::getInstance().error("Type error: Invalid type for prefix operator %s", prefixExpr->toString().c_str());
@@ -148,17 +181,64 @@ bool TypeResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 }
 
 bool TypeResolver::visit(AstPostfixExpr* postfixExpr, Phase phase) {
+	if(!postfixExpr->expr->accept(this, phase)) {
+		return false;
+	}
+
+	switch(postfixExpr->op) {
+		case AstPostfixExpr::PPLUS:
+		case AstPostfixExpr::MMINUS:
+			if(postfixExpr->expr->ofType->type == AstType::INT) {
+				postfixExpr->ofType = postfixExpr->expr->ofType;
+			}
+			else if(postfixExpr->expr->ofType->type == AstType::FLOAT) {
+				postfixExpr->ofType = postfixExpr->expr->ofType;
+			}
+			else if(postfixExpr->expr->ofType->type == AstType::PTR) {
+				postfixExpr->ofType = postfixExpr->expr->ofType;
+			}
+			else if(postfixExpr->expr->ofType->type == AstType::CHAR) {
+				postfixExpr->ofType = postfixExpr->expr->ofType;
+			}
+			else {
+				Logger::getInstance().error("Type error: Invalid type for postfix operator %s", postfixExpr->toString().c_str());
+				return false;
+			}
+			break;
+		case AstPostfixExpr::ACCESS: // id.id
+			break;
+		case AstPostfixExpr::PTRACCESS: // id->id
+			break;
+		case AstPostfixExpr::ARRAYACCESS: // id[id]
+			break;
+	};
+
 	return true;
 }
 
 bool TypeResolver::visit(AstBinaryExpr* binaryExpr, Phase phase) {
-	
+	if(!binaryExpr->left->accept(this, phase)) {
+		return false;
+	}
+
+	if(!binaryExpr->right->accept(this, phase)) {
+		return false;
+	}
+
+	switch(binaryExpr->op) {
+		case AstBinaryExpr::PLUS:
+		case AstBinaryExpr::MINUS:
+		case AstBinaryExpr::MUL:
+		case AstBinaryExpr::DIV:
+		case AstBinaryExpr::MOD:
+			break;
+	};
 	return true;
 }
 
 
 bool TypeResolver::visit(AstExprStmt* exprStmt, Phase phase) {
-	if(!exprStmt->accept(this, phase)) {
+	if(!exprStmt->expr->accept(this, phase)) {
 		return false;
 	}
 
@@ -166,7 +246,7 @@ bool TypeResolver::visit(AstExprStmt* exprStmt, Phase phase) {
 }
 
 bool TypeResolver::visit(AstAssignStmt* assignStmt, Phase phase) {
-	// a += 3 -> a must be in and 3 must be int
+	// a += 3 -> a must be int and 3 must be int
 	
 	if(!assignStmt->left->accept(this, phase)) {
 		return false;
