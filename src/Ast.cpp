@@ -2,10 +2,10 @@
 #include "Font.h"
 
 static std::string typeColor = Font::byColorCode(144, 42, 181);
-static std::string nameColor = Font::byColorCode(224, 207, 52);
+static std::string nameColor = Font::byColorCode(195, 180, 52);
 static std::string valueColor = Font::byColorCode(39, 180, 99);
-static std::string charColor = valueColor;
-static std::string stringColor = valueColor;
+static std::string charColor = Font::byColorCode(200, 120, 40);
+static std::string stringColor = charColor;
 
 static std::string colorize(std::string color, std::string var) {
 	return color + var + Font::reset;
@@ -62,8 +62,8 @@ std::string AstType::getTypeName() const {
 	case AstType::VOID: ret = "void"; break;
 	case AstType::FLOAT: ret = "float"; break;
 	case AstType::NAMED: ret = "named"; break;
-	case AstType::PTR: ret = ((AstPtrType*)this)->ptrType->getTypeName(); ret+= "*"; break;
-	case AstType::ARRAY: ret = "array"; break;
+	case AstType::PTR: ret = ((AstPtrType*)this)->ptrType->getTypeName(); ret += "*"; break;
+	case AstType::ARRAY: ret = ((AstArrayType*)this)->arrayType->getTypeName(); ret += "[]"; break;
 	default: 
 		ret = "UNKNOWN";
 	}
@@ -353,7 +353,7 @@ std::string AstType::prettyGetTypeName() const {
 	case AstType::FLOAT: ret = "float"; break;
 	case AstType::NAMED: ret = "named"; break;
 	case AstType::PTR: ret = ((AstPtrType*)this)->ptrType->prettyGetTypeName(); ret+= "*"; break;
-	case AstType::ARRAY: ret = "array"; break;
+	case AstType::ARRAY: ret = ((AstArrayType*)this)->arrayType->prettyGetTypeName(); ret +="[]"; break;
 	default: 
 		ret = "UNKNOWN";
 	}

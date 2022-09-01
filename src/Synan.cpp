@@ -270,20 +270,8 @@ bool Synan::isPtrOrArrType() {
 
 
 bool Synan::isExpr() {
-	if(isFunctionCall()) {
-		Logger::getInstance().debug("Function call");
-		return true;
-	}
-	else if(isInfixExpr()) {
+	if(isInfixExpr()) {
 		Logger::getInstance().debug("XFix expr");
-		return true;
-	}
-	else if(isConstExpr()) {
-		Logger::getInstance().debug("Const expr");
-		return true;
-	}
-	else if(isVariableAccess()) {
-		Logger::getInstance().debug("Variable access");
 		return true;
 	}
 

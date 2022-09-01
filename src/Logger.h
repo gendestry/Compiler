@@ -30,8 +30,8 @@ public:
 
 	template<typename... Args>
 	void log(std::string format, Args... args) {
-		format.insert(0, Font::italic);
-		format.append(Font::reset);
+		// format.insert(0, Font::italic);
+		// format.append(Font::reset);
 		format.append("\n");
 		printf(format.c_str(), args...);
 	}

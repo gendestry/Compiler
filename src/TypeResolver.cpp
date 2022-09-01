@@ -297,25 +297,22 @@ bool TypeResolver::visit(AstPostfixExpr* postfixExpr, Phase phase) {
 				return false;
 			}
 
-			AstNamedExpr* namedExpr = (AstNamedExpr*)postfixExpr->expr;
-			AstVarDecl* decl = (AstVarDecl*)namedExpr->declaration;
-
 			if(postfixExpr->index->ofType->type != AstType::INT) {
-				Logger::getInstance().error("Type error: Array index must be of type int %s: %s", namedExpr->name.c_str(), postfixExpr->toString().c_str());
+				Logger::getInstance().error("Type error: Array index must be of type int %s", postfixExpr->toString().c_str());
 				return false;
 			}
 
-			if(decl->type->type == AstType::ARRAY) {
-				postfixExpr->expr->ofType = ((AstArrayType*)decl->type)->arrayType;
+			if(postfixExpr->expr->ofType->type == AstType::ARRAY) {
+				postfixExpr->ofType = ((AstArrayType*)postfixExpr->expr->ofType)->arrayType;
 			}
 			else {
 				Logger::getInstance().error("Type error: Invalid array type %s", postfixExpr->toString().c_str());
 				return false;
 			}
+
 			break;
 	};
 
-	// Logger::getInstance().log("Type resolved: %s", postfixExpr->toString().c_str());
 	return true;
 }
 

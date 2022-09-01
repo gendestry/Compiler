@@ -73,25 +73,49 @@
 // int add(int a, int b) {
 // 	return a + b;
 // }
+// int* arr() {
+// 	return &floor;
+// }
 
-// int neki() { return 3; }
-// int[10]* asd;
+// int get(int index) {
+// 	// asd[index];
+// 	return asd[index];
+// }
 // int[10]* qwe = asd;
 // void x = 10;
 
 // int** x() { return (int**)1; }
+// int evil = neki() + 2.5;
+
+// int neki() { return 3; }
+// int[10] asd;
+int[10][10] floor;
+// typedef int* ptr;
+// ptr xd = (int*)3;
+
+int getX(int index) {
+	return floor[index][0];
+}
+
+char* helloworld () {
+	return "helloworld!";
+}
 
 int main(char c) {
+	c = 'c';
+	int* sth = (int*)&c;
+	int z = getX(1) + (int)c;
+	return z;
+
 	// int x = (int)(neki());
 
 	// char* y = "";
 	// x = (int)y;
-	int** x = (int**)3;
-	int y = **x;
+	// int** x = (int**)3;
+	// int y = get(3);
 	// int*** y = (int***)4;
 	// bool z = x == y;
 	
-	return 0;
 
 	// (int)neki();
 
