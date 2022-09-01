@@ -58,29 +58,75 @@
 // void denis(char ch) {
 // 	ch = 'a';
 // }
-int x = 3;
-float z = 4.0;
+// int arr;
+// int x = 3;
+// float z = 4.0;
 
-int add(int a, int b) {
-	return a + b;
-}
+// int add(int a, int b) {
+// 	return a + b;
+// }
 
-int y = x + 4;
+// int y = x + 4;
+
+// int x = 4;
+
+// int add(int a, int b) {
+// 	return a + b;
+// }
+
+// int neki() { return 3; }
+// int[10]* asd;
+// int[10]* qwe = asd;
+// void x = 10;
+
+// int** x() { return (int**)1; }
+
+int main(char c) {
+	// int x = (int)(neki());
+
+	// char* y = "";
+	// x = (int)y;
+	int** x = (int**)3;
+	int y = **x;
+	// int*** y = (int***)4;
+	// bool z = x == y;
+	
+	return 0;
+
+	// (int)neki();
+
+	// char z;
+	// int* y = (int*)&z;
+	// y = (int*)&z;
+	// int x = neki();
+
+	// int[10] arr;
+	// int y = (int)(neki());
+	// add(5,4);
+	// arr[10];
+	// x = 4;
+	// x = add((int)c, 4);
+	// while(x < 4 && false) {
+	// 	float f = 4.0;
+	// 	f += 3.0;
+	// }
+
+	// if(true) {
+
+	// }
+	// c = (char)(add(x, y));
+	// c[8];
 
 
-int main(int c) {
-	c = (char)(add(x, y));
+	// if(c == 7) {
+	// 	while(c > 4) {
+	// 		c--;
+	// 	}
 
+	// 	return c;
+	// }
 
-	if(c == 7) {
-		while(c > 4) {
-			c--;
-		}
-
-		return c;
-	}
-
-	return y;
+	// return y;
 	// c = 'x';
 	// if(c == 'x') {
 		// int c = 'y';

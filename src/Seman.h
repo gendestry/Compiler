@@ -3,6 +3,7 @@
 #include "Logger.h"
 #include "Synan.h"
 #include "NameResolver.h"
+#include "TypeResolver.h"
 
 class Seman {
 public:
@@ -18,4 +19,5 @@ private:
 	std::vector<AstDecl*>& decls;
 	
 	NameResolver nameResolver;
+	TypeResolver typeResolver;
 };

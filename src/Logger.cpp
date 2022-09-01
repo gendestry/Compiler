@@ -9,7 +9,7 @@ void Logger::debug(const std::string& msg) {
 }
 
 void Logger::log(const std::string& msg) {
-	formatted(msg, nullptr);
+	formatted(msg, false, nullptr);
 	// std::cout << Font::italic << msg << Font::reset << std::endl;
 }
 

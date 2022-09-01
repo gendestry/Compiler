@@ -9,7 +9,8 @@
 class Synan {
 private:
 	const std::vector<Token>& tokens;
-	int pos = 0;						// current token position
+	int pos = 0;							// current token position
+	AstFunDecl* currentFunction = nullptr;	// current function
 
 	std::vector<AstDecl*> decls;
 	std::vector<AstType*> types;

@@ -1,4 +1,15 @@
 #include "Ast.h"
+#include "Font.h"
+
+static std::string typeColor = Font::byColorCode(144, 42, 181);
+static std::string nameColor = Font::byColorCode(224, 207, 52);
+static std::string valueColor = Font::byColorCode(39, 180, 99);
+static std::string charColor = valueColor;
+static std::string stringColor = valueColor;
+
+static std::string colorize(std::string color, std::string var) {
+	return color + var + Font::reset;
+}
 
 
 std::string AstDecl::toString() const {
@@ -41,31 +52,34 @@ std::string AstStructDecl::toString() const {
 
 
 
+std::string AstType::getTypeName() const {
+	std::string ret = "";
+
+	switch(type) {
+	case AstType::INT: ret = "int"; break;
+	case AstType::CHAR: ret = "char"; break;
+	case AstType::BOOL: ret = "bool"; break;
+	case AstType::VOID: ret = "void"; break;
+	case AstType::FLOAT: ret = "float"; break;
+	case AstType::NAMED: ret = "named"; break;
+	case AstType::PTR: ret = ((AstPtrType*)this)->ptrType->getTypeName(); ret+= "*"; break;
+	case AstType::ARRAY: ret = "array"; break;
+	default: 
+		ret = "UNKNOWN";
+	}
+
+	return ret;
+}
+
 std::string AstType::toString() const {
 	return "AstType";
 }
 
 std::string AstAtomType::toString() const {
 	std::string ret = "AtomType[";
-	switch(type) {
-		case INT:
-			ret += "int]";
-			break;
-		case CHAR:
-			ret += "char]";
-			break;
-		case BOOL:
-			ret += "bool]";
-			break;
-		case VOID:
-			ret += "void]";
-			break;
-		case FLOAT:
-			ret += "float]";
-			break;
-	}
-
-	return ret;
+	std::string type = getTypeName();
+	
+	return ret + type + "]";
 }
 
 std::string AstNamedType::toString() const {
@@ -77,7 +91,7 @@ std::string AstPtrType::toString() const {
 }
 
 std::string AstArrayType::toString() const {
-	return "ArrayType[" + arrayType->toString() + "," + expr->toString() + "]";
+	return "ArrayType[" + arrayType->toString() + ", " + expr->toString() + "]";
 }
 
 
@@ -87,15 +101,22 @@ std::string AstExpr::toString() const {
 }
 
 std::string AstConstExpr::toString() const {
-	std::string ret = "AstConstExpr[";
+	std::string ret = "AstConstExpr";
+	std::string temp = "";
+
+	if(ofType) {
+		ret += "{" + ofType->getTypeName() + "}";
+	}
+	ret += "[";
 	switch(type) {
 		case Token::NUMBER:
 			ret += std::to_string(ivalue) + "]";
 			break;
 		case Token::CHARACTER:
-			ret += "'";
-			ret += cvalue;
-			ret += "']";
+			temp += "'";
+			temp += cvalue;
+			temp += "'";
+			ret += temp + "]";
 			break;
 		case Token::TRUE:
 			ret += "true]";
@@ -104,24 +125,32 @@ std::string AstConstExpr::toString() const {
 			ret += "false]";
 			break;
 		case Token::STRING:
-			ret += "\"" + str + "\"]";
+			temp += "\"" + str + "\"";
+			ret += temp + "]";
 			break;
 		case Token::FNUMBER:
 			ret += std::to_string(fvalue) + "]";
 			break;
-		// case Token::NIL:
-		// 	ret += "nil]";
-		// 	break;
 	}
 	return ret;
 }
 
 std::string AstNamedExpr::toString() const {
-	return "AstNamedExpr[" + name + "]";
+	std::string ret = "AstNamedExpr";
+	if(ofType) {
+		ret += "{" + ofType->getTypeName() + "}";
+	}
+	ret += "[" + name + "]";
+	return ret;
 }
 
 std::string AstCallExpr::toString() const {
-	std::string str = "AstCallExpr[" + name + "(";
+	std::string str = "AstCallExpr";
+	if(ofType) {
+		str += "{" + ofType->getTypeName() + "}";
+	}
+	str += "[";
+	str += name + "(";
 	for (int i = 0; i < args.size(); i++) {
 		str += args[i]->toString();
 		if (i < args.size() - 1)
@@ -132,11 +161,22 @@ std::string AstCallExpr::toString() const {
 }
 
 std::string AstCastExpr::toString() const {
-	return "AstCastExpr[" + type->toString() + ", " + expr->toString() + "]";
+	std::string ret = "AstCastExpr";
+	if(ofType) {
+		ret += "{" + ofType->getTypeName() + "}";
+	}
+	ret += "[";
+	ret += type->toString() + ", " + expr->toString() + "]";
+	return ret;
 }
 
 std::string AstPrefixExpr::toString() const {
-	std::string ret = "AstPrefixExpr[";
+	std::string ret = "AstPrefixExpr";
+	if(ofType) {
+		ret += "{" + ofType->getTypeName() + "}";
+	}
+	ret += "[";
+
 	switch(op) {
 		case PLUS:
 			ret += "+";
@@ -170,7 +210,12 @@ std::string AstPrefixExpr::toString() const {
 }
 
 std::string AstPostfixExpr::toString() const {
-	std::string ret = "AstPostfixExpr[";
+	std::string ret = "AstPostfixExpr";
+	if(ofType) {
+		ret += "{" + ofType->getTypeName() + "}";
+	}
+	ret += "[";
+
 	if(type == 0) {
 		switch(op) {
 			case PPLUS:
@@ -203,7 +248,13 @@ std::string AstPostfixExpr::toString() const {
 }
 
 std::string AstBinaryExpr::toString() const {
-	return "AstBinExpr[" + Token::tokenNames[(int)op] + ", " + left->toString() + ", " + right->toString() + "]";
+	std::string ret = "AstBinExpr";
+	if(ofType) {
+		ret += "{" + ofType->getTypeName() + "}";
+	}
+	ret += "[";
+	ret += Token::tokenNames[(int)op] + ", " + left->toString() + ", " + right->toString() + "]";
+	return ret;
 }
 
 
@@ -245,4 +296,298 @@ std::string AstReturnStmt::toString() const {
 
 std::string AstVarStmt::toString() const {
 	return "AstVarStmt[" + decl.toString() + "]";
+}
+
+
+// prettyToString()
+
+
+std::string AstDecl::prettyToString() const {
+	return "AstDecl";
+}
+
+std::string AstVarDecl::prettyToString() const {
+	return "VarDecl[" + colorize(nameColor, name) + " : " + type->prettyToString() + (expr ? " = " + expr->prettyToString() : "") + "]";
+}
+
+std::string AstTypeDecl::prettyToString() const {
+	return "TypeDecl[" + colorize(typeColor, name) + " : " + type->prettyToString() + "]";
+}
+
+std::string AstParDecl::prettyToString() const {
+	std::string str = "ParDecl[";
+	for (int i = 0; i < params.size(); i++) {
+		str += params[i].prettyToString();
+		if (i < params.size() - 1)
+			str += ", ";
+	}
+	str += "]";
+	return str;
+}
+
+std::string AstFunDecl::prettyToString() const {
+	return "FunDecl[" + colorize(nameColor, name) + " : " + type->prettyToString() + (params ? (", " + params->prettyToString()) : "") + (body ? (", " + body->prettyToString()) : "") + "]";
+}
+
+std::string AstStructDecl::prettyToString() const {
+	std::string str = "StructDecl[" + colorize(nameColor, name) + " : ";
+	for (int i = 0; i < fields.size(); i++) {
+		str += fields[i].prettyToString();
+		if (i < fields.size() - 1)
+			str += ", ";
+	}
+	str += "]";
+	return str;
+}
+
+
+
+std::string AstType::prettyGetTypeName() const {
+	std::string ret = "";
+
+	switch(type) {
+	case AstType::INT: ret = "int"; break;
+	case AstType::CHAR: ret = "char"; break;
+	case AstType::BOOL: ret = "bool"; break;
+	case AstType::VOID: ret = "void"; break;
+	case AstType::FLOAT: ret = "float"; break;
+	case AstType::NAMED: ret = "named"; break;
+	case AstType::PTR: ret = ((AstPtrType*)this)->ptrType->prettyGetTypeName(); ret+= "*"; break;
+	case AstType::ARRAY: ret = "array"; break;
+	default: 
+		ret = "UNKNOWN";
+	}
+
+	return colorize(typeColor, ret);
+}
+
+std::string AstType::prettyToString() const {
+	return "AstType";
+}
+
+std::string AstAtomType::prettyToString() const {
+	std::string ret = "AtomType[";
+	std::string type = prettyGetTypeName();
+	
+	return ret + colorize(typeColor, type) + "]";
+}
+
+std::string AstNamedType::prettyToString() const {
+	return "NamedType[" + colorize(typeColor, name) + "]";
+}
+
+std::string AstPtrType::prettyToString() const {
+	return "PtrType[" + ptrType->prettyToString() + "]";
+}
+
+std::string AstArrayType::prettyToString() const {
+	return "ArrayType[" + arrayType->prettyToString() + ", " + expr->prettyToString() + "]";
+}
+
+
+
+std::string AstExpr::prettyToString() const {
+	return "AstExpr";
+}
+
+std::string AstConstExpr::prettyToString() const {
+	std::string ret = "AstConstExpr";
+	std::string temp = "";
+
+	if(ofType) {
+		ret += "{" + ofType->prettyGetTypeName() + "}";
+	}
+	ret += "[";
+	switch(type) {
+		case Token::NUMBER:
+			ret += colorize(valueColor, std::to_string(ivalue)) + "]";
+			break;
+		case Token::CHARACTER:
+			temp += "'";
+			temp += cvalue;
+			temp += "'";
+			ret += colorize(charColor, temp) + "]";
+			break;
+		case Token::TRUE:
+			ret += colorize(valueColor, "true") + "]";
+			break;
+		case Token::FALSE:
+			ret += colorize(valueColor, "false") + "]";
+			break;
+		case Token::STRING:
+			temp += "\"" + str + "\"";
+			ret += colorize(stringColor, temp) + "]";
+			break;
+		case Token::FNUMBER:
+			ret += colorize(valueColor, std::to_string(fvalue)) + "]";
+			break;
+	}
+	return ret;
+}
+
+std::string AstNamedExpr::prettyToString() const {
+	std::string ret = "AstNamedExpr";
+	if(ofType) {
+		ret += "{" + ofType->prettyGetTypeName() + "}";
+	}
+	ret += "[" + colorize(nameColor, name) + "]";
+	return ret;
+}
+
+std::string AstCallExpr::prettyToString() const {
+	std::string str = "AstCallExpr";
+	if(ofType) {
+		str += "{" + ofType->prettyGetTypeName() + "}";
+	}
+	str += "[";
+	str += colorize(nameColor, name) + "(";
+	for (int i = 0; i < args.size(); i++) {
+		str += args[i]->prettyToString();
+		if (i < args.size() - 1)
+			str += ", ";
+	}
+	str += ")]";
+	return str;
+}
+
+std::string AstCastExpr::prettyToString() const {
+	std::string ret = "AstCastExpr";
+	if(ofType) {
+		ret += "{" + ofType->prettyGetTypeName() + "}";
+	}
+	ret += "[";
+	ret += type->prettyToString() + ", " + expr->prettyToString() + "]";
+	return ret;
+}
+
+std::string AstPrefixExpr::prettyToString() const {
+	std::string ret = "AstPrefixExpr";
+	if(ofType) {
+		ret += "{" + ofType->prettyGetTypeName() + "}";
+	}
+	ret += "[";
+
+	switch(op) {
+		case PLUS:
+			ret += "+";
+			break;
+		case MINUS:
+			ret += "-";
+			break;
+		case PPLUS:
+			ret += "++";
+			break;
+		case MMINUS:
+			ret += "--";
+			break;
+		case NOT:
+			ret += "!";
+			break;
+		case NEGATE:
+			ret += "~";
+			break;
+		case DEREF:
+			ret += "*";
+			break;
+		case ADDR:
+			ret += "&";
+			break;
+		default:
+			ret += std::to_string(op);
+	}
+	ret += ", " + expr->prettyToString() + "]";
+	return ret;
+}
+
+std::string AstPostfixExpr::prettyToString() const {
+	std::string ret = "AstPostfixExpr";
+	if(ofType) {
+		ret += "{" + ofType->prettyGetTypeName() + "}";
+	}
+	ret += "[";
+
+	if(type == 0) {
+		switch(op) {
+			case PPLUS:
+				ret += "++, ";
+				break;
+			case MMINUS:
+				ret += "--, ";
+				break;
+		}
+	}
+	else if(type == 1) {
+		switch(op) {
+			case ACCESS:
+				ret += ".access, ";
+				break;
+			case PTRACCESS:
+				ret += "->access, ";
+				break;
+		}
+		ret += name + ", ";
+	}
+	else if(type == 2)
+		ret += "array, ";
+
+	ret += expr->prettyToString(); // + "]";
+	if(type == 2)
+		ret += ", " + index->prettyToString();
+	ret += "]";
+	return ret;
+}
+
+std::string AstBinaryExpr::prettyToString() const {
+	std::string ret = "AstBinExpr";
+	if(ofType) {
+		ret += "{" + ofType->prettyGetTypeName() + "}";
+	}
+	ret += "[";
+	ret += Token::tokenNames[(int)op] + ", " + left->prettyToString() + ", " + right->prettyToString() + "]";
+	return ret;
+}
+
+
+
+std::string AstStmt::prettyToString() const {
+	return "AstStmt";
+}
+
+std::string AstExprStmt::prettyToString() const {
+	return "AstExprStmt[" + expr->prettyToString() + "]";
+}
+
+std::string AstAssignStmt::prettyToString() const {
+	return "AstAssignStmt[" + Token::tokenNames[(int)op] + ", " + left->prettyToString() + ", " + right->prettyToString() + "]";
+}
+
+std::string AstCompStmt::prettyToString() const {
+	std::string str = "AstCompStmt[";
+	for (int i = 0; i < stmts.size(); i++) {
+		str += stmts[i]->prettyToString();
+		if (i < stmts.size() - 1)
+			str += ", ";
+	}
+	str += "]";
+	return str;
+}
+
+std::string AstIfStmt::prettyToString() const {
+	return "AstIfStmt[" + cond->prettyToString() + ", " + stmt->prettyToString() + (elseStmt ? (", " + elseStmt->prettyToString()) : "") + "]";
+}
+
+std::string AstWhileStmt::prettyToString() const {
+	return "AstWhileStmt[" + cond->prettyToString() + ", " + stmt->prettyToString() + "]";
+}
+
+std::string AstReturnStmt::prettyToString() const {
+	std::string ret = "AstReturnStmt{";
+	if(ofType)
+		ret += colorize(typeColor, ofType->prettyGetTypeName()) + "}";
+	ret += "[" + (expr ? expr->prettyToString() : "") + "]";
+	return ret;
+}
+
+std::string AstVarStmt::prettyToString() const {
+	return "AstVarStmt[" + decl.prettyToString() + "]";
 }

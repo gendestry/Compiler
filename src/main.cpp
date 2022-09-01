@@ -24,9 +24,10 @@ int main() {
 	if(!seman.resolveNames())
 		return -1;
 	
+	if(!seman.resolveTypes())
+		return -1;
 
-	// if(!seman.typeResolver())
-	// 	return -1;
+	// synan.printDecls();
 
 	// if(!seman.lvalueResolver())
 	// 	return -1;

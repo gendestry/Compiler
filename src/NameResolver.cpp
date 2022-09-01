@@ -161,7 +161,7 @@ bool NameResolver::visit(AstNamedType* namedType, Phase phase) {
 		}
 
 		namedType->declaration = decl;
-		Logger::getInstance().log("Found type %s", decl->toString().c_str());
+		Logger::getInstance().log("Found type %s", decl->prettyToString().c_str());
 	}
 
 	return true;
@@ -207,7 +207,7 @@ bool NameResolver::visit(AstNamedExpr* namedExpr, Phase phase) {
 		}
 
 		namedExpr->declaration = decl;
-		Logger::getInstance().log("Found variable %s", decl->toString().c_str());
+		Logger::getInstance().log("Found variable %s", decl->prettyToString().c_str());
 	}
 
 	return true;
@@ -223,7 +223,7 @@ bool NameResolver::visit(AstCallExpr* callExpr, Phase phase) {
 		}
 
 		callExpr->declaration = decl;
-		Logger::getInstance().log("Found function %s", decl->toString().c_str());
+		Logger::getInstance().log("Found function %s", decl->prettyToString().c_str());
 
 		for(auto& expr : callExpr->args) {
 			if(!expr->accept(this, phase)) {
@@ -262,6 +262,10 @@ bool NameResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 bool NameResolver::visit(AstPostfixExpr* postfixExpr, Phase phase) {
 	if(phase == Phase::BODY) {
 		if(!postfixExpr->expr->accept(this, phase)) {
+			return false;
+		}
+
+		if(postfixExpr->index && !postfixExpr->index->accept(this, phase)) {
 			return false;
 		}
 	}

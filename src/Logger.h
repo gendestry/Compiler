@@ -46,14 +46,14 @@ public:
 	}
 
 	template<typename... Args>
-	void formatted(std::string format, Args... args) {
-		replaceAll(format, "#i", Font::italic);
-		replaceAll(format, "#b", Font::bold);
-		replaceAll(format, "#u", Font::underline);
-		replaceAll(format, "#r", Font::reset);
-		replaceAll(format, "#red", Font::fred);
-		replaceAll(format, "#grn", Font::fgreen);
-		replaceAll(format, "#blu", Font::fblue);
+	void formatted(std::string format, bool replaceNull, Args... args) {
+		replaceAll(format, "#i", replaceNull ? "" : Font::italic);
+		replaceAll(format, "#b", replaceNull ? "" : Font::bold);
+		replaceAll(format, "#u", replaceNull ? "" : Font::underline);
+		replaceAll(format, "#r", replaceNull ? "" : Font::reset);
+		replaceAll(format, "#red", replaceNull ? "" : Font::fred);
+		replaceAll(format, "#grn", replaceNull ? "" : Font::fgreen);
+		replaceAll(format, "#blu", replaceNull ? "" : Font::fblue);
 
 		printf(format.c_str(), args...);
 	}

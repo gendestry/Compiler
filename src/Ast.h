@@ -16,6 +16,7 @@ public:
 	virtual bool accept(Visitor* visitor, Phase phase) = 0;
 	
 	virtual std::string toString() const = 0;
+	virtual std::string prettyToString() const = 0;
 };
 
 /* ----- DECLS ----- */
@@ -24,6 +25,7 @@ class AstDecl : public Ast {
 public:
 public:
 	virtual std::string toString() const override;
+	virtual std::string prettyToString() const override;
 };
 
 class AstVarDecl : public AstDecl {
@@ -33,6 +35,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 	
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstType* type = nullptr;
 	AstExpr* expr = nullptr;
@@ -46,6 +49,8 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
+	int size() const { return params.size(); }
 public:
 	std::vector<AstVarDecl> params;
 };
@@ -57,6 +62,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	std::string name;
 	AstType* type;
@@ -71,6 +77,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstType* type = nullptr;
 	std::string name;
@@ -83,6 +90,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	std::string name;
 	std::vector<AstVarDecl> fields;
@@ -104,6 +112,10 @@ public:
 	};
 public:
 	virtual std::string toString() const override;
+	virtual std::string prettyToString() const override;
+	std::string getTypeName() const;
+	std::string prettyGetTypeName() const;
+
 	Type type;
 };
 
@@ -114,6 +126,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 };
 
@@ -124,6 +137,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	std::string name;
 	AstDecl* declaration = nullptr;
@@ -136,6 +150,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstType* ptrType;
 };
@@ -147,6 +162,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstType* arrayType;
 	AstExpr* expr;
@@ -157,6 +173,7 @@ public:
 class AstExpr : public Ast {
 public:
 	virtual std::string toString() const override;
+	virtual std::string prettyToString() const override;
 
 	AstType* ofType = nullptr;
 };
@@ -172,6 +189,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	Token::TokenType type;
 	union {
@@ -190,6 +208,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	std::string name;
 	AstDecl* declaration = nullptr;
@@ -202,6 +221,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	std::string name;
 	std::vector<AstExpr*> args;
@@ -215,6 +235,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstType* type;
 	AstExpr* expr;
@@ -238,6 +259,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	Prefix op;
 	AstExpr* expr;
@@ -260,6 +282,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	int type = 0;
 	AstExpr* expr = nullptr;
@@ -294,6 +317,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstExpr* left;
 	Binary op;
@@ -305,6 +329,7 @@ public:
 class AstStmt : public Ast {
 public:
 	virtual std::string toString() const override;
+	virtual std::string prettyToString() const override;
 };
 
 class AstExprStmt : public AstStmt {
@@ -314,6 +339,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstExpr* expr;
 };
@@ -321,7 +347,7 @@ public:
 class AstAssignStmt : public AstStmt {
 public:
 	enum Assign {
-		EQU = 15,
+		EQU = 14,
 		PLUS = 58,
 		MINUS,
 		MUL,
@@ -334,6 +360,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstExpr* left;
 	AstExpr* right;
@@ -347,6 +374,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	std::vector<AstStmt*> stmts;
 };
@@ -358,6 +386,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstExpr* cond;
 	AstStmt* stmt;
@@ -371,6 +400,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstExpr* cond;
 	AstStmt* stmt;
@@ -378,13 +408,16 @@ public:
 
 class AstReturnStmt : public AstStmt {
 public:
-	AstReturnStmt(AstExpr* expr) : expr(expr) {}
+	AstReturnStmt(AstExpr* expr, AstFunDecl* parentFunc) : expr(expr), funDecl(parentFunc) {}
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstExpr* expr;
+	AstFunDecl* funDecl;
+	AstType* ofType = nullptr;
 };
 
 class AstVarStmt : public AstStmt {
@@ -394,6 +427,7 @@ public:
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
 	std::string toString() const override;
+	std::string prettyToString() const override;
 public:
 	AstVarDecl decl;
 };

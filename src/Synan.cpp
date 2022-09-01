@@ -26,7 +26,7 @@ bool Synan::parse() {
 
 void Synan::printDecls() {
 	for(AstDecl* decl : decls) {
-		std::cout << decl->toString() << std::endl;
+		std::cout << decl->prettyToString() << std::endl;
 	}
 }
 
@@ -55,6 +55,7 @@ bool Synan::isVarDecl() {
 	int oldPos = pos;
 
 	if(isType() && isTokenType(Token::IDENTIFIER)) {
+		AstType* type = types.back();
 		std::string name = tokens[pos - 1].getText();
 		AstExpr* expr = nullptr;
 
@@ -68,7 +69,7 @@ bool Synan::isVarDecl() {
 			return false;
 		}
 
-		decls.push_back(new AstVarDecl(name, types.back(), expr));
+		decls.push_back(new AstVarDecl(name, type, expr));
 		return true;
 	}
 
@@ -95,6 +96,10 @@ bool Synan::isFunDecl() {
 				decls.push_back(new AstFunDecl(name, type, pDecl));
 				return true;
 			}
+
+			AstFunDecl* temp = new AstFunDecl(name, type, nullptr, nullptr);
+			currentFunction = temp;
+
 			if(isCompoundStmt()) {
 				AstParDecl* pDecl = nullptr;
 				if(parDecl) {
@@ -102,10 +107,14 @@ bool Synan::isFunDecl() {
 					decls.pop_back();
 				}
 				
-				decls.push_back(new AstFunDecl(name, type, pDecl, stmts.back()));
+				temp->params = pDecl;
+				temp->body = stmts.back();
+				decls.push_back(temp);
 				Logger::getInstance().debug("Compound stmt");
 				return true;
 			}
+
+			delete temp;
 		}
 	} 
 
@@ -363,7 +372,7 @@ bool Synan::isInfixExpr() {
 }
 
 bool Synan::isInfixA() {
-	Logger::getInstance().debug("Infix A: %d", pos);
+	Logger::getInstance().debug("Infix A: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isInfixB() && isInfixB_()) {
 		return true;
 	}
@@ -372,7 +381,7 @@ bool Synan::isInfixA() {
 }
 
 bool Synan::isInfixA_() {
-	Logger::getInstance().debug("Infix A_: %d", pos);
+	Logger::getInstance().debug("Infix A_: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isTokenType(Token::ANDAND) || isTokenType(Token::OROR)) {
 		Token::TokenType type = tokens[pos - 1].getType();
 		AstExpr* expr = exprs.back();
@@ -390,7 +399,7 @@ bool Synan::isInfixA_() {
 }
 
 bool Synan::isInfixB() {
-	Logger::getInstance().debug("Infix B: %d", pos);
+	Logger::getInstance().debug("Infix B: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isInfixC() && isInfixC_()) {
 		return true;
 	}
@@ -398,7 +407,7 @@ bool Synan::isInfixB() {
 }
 
 bool Synan::isInfixB_() {
-	Logger::getInstance().debug("Infix B_: %d", pos);
+	Logger::getInstance().debug("Infix B_: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isTokenType(Token::OR) || isTokenType(Token::AND) || isTokenType(Token::XOR)) {
 		Token::TokenType type = tokens[pos - 1].getType();
 		AstExpr* expr = exprs.back();
@@ -416,7 +425,7 @@ bool Synan::isInfixB_() {
 }
 
 bool Synan::isInfixC() {
-	Logger::getInstance().debug("Infix C: %d", pos);
+	Logger::getInstance().debug("Infix C: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isInfixD() && isInfixD_()) {
 		return true;
 	}
@@ -424,7 +433,7 @@ bool Synan::isInfixC() {
 }
 
 bool Synan::isInfixC_() {
-	Logger::getInstance().debug("Infix C_: %d", pos);
+	Logger::getInstance().debug("Infix C_: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isTokenType(Token::EQUAL) || isTokenType(Token::NOT_EQUAL) || isTokenType(Token::LESS_THAN) || isTokenType(Token::LESS_THAN_EQUAL) || isTokenType(Token::GREATER_THAN) || isTokenType(Token::GREATER_THAN_EQUAL)) {
 		Token::TokenType type = tokens[pos - 1].getType();
 		AstExpr* expr = exprs.back();
@@ -442,7 +451,7 @@ bool Synan::isInfixC_() {
 }
 
 bool Synan::isInfixD() {
-	Logger::getInstance().debug("Infix D: %d", pos);
+	Logger::getInstance().debug("Infix D: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isInfixE() && isInfixE_()) {
 		return true;
 	}
@@ -450,7 +459,7 @@ bool Synan::isInfixD() {
 }
 
 bool Synan::isInfixD_() {
-	Logger::getInstance().debug("Infix D_: %d", pos);
+	Logger::getInstance().debug("Infix D_: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isTokenType(Token::PLUS) || isTokenType(Token::MINUS)) {
 		Token::TokenType type = tokens[pos - 1].getType();
 		AstExpr* expr = exprs.back();
@@ -470,7 +479,7 @@ bool Synan::isInfixD_() {
 bool Synan::isInfixE() {
 	int oldPos = pos;
 
-	Logger::getInstance().debug("Infix E: %d", pos);
+	Logger::getInstance().debug("Infix E: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	bool prefix = false;
 	if(isTokenType(Token::PLUS)
 		|| isTokenType(Token::MINUS)
@@ -490,15 +499,17 @@ bool Synan::isInfixE() {
 			Logger::getInstance().debug("Prefix expr", pos);
 			return true;
 		}
-	} else if (isTokenType(Token::LPAREN) && isType() && isTokenType(Token::RPAREN)){
-		AstType* type = types.back();
+	} else if (isTokenType(Token::LPAREN) && isType()) {
+		if(isTokenType(Token::RPAREN)){
+			AstType* type = types.back();
 
-		if(isInfixE()) {
-			AstExpr* expr = exprs.back();
-			exprs.push_back(new AstCastExpr(type, expr));
-			Logger::getInstance().debug("Cast expr", pos);
-			return true;
-		}		
+			if(isInfixE()) {
+				AstExpr* expr = exprs.back();
+				exprs.push_back(new AstCastExpr(type, expr));
+				Logger::getInstance().debug("Cast expr", pos);
+				return true;
+			}	
+		}
 	}
 
 	pos = oldPos;
@@ -511,7 +522,7 @@ bool Synan::isInfixE() {
 }
 
 bool Synan::isInfixE_() {
-	Logger::getInstance().debug("Infix E_: %d", pos);
+	Logger::getInstance().debug("Infix E_: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isTokenType(Token::MULTIPLY) || isTokenType(Token::DIVIDE) || isTokenType(Token::MODULO)) { 
 		Token::TokenType type = tokens[pos - 1].getType();
 		AstExpr* expr = exprs.back();
@@ -529,7 +540,7 @@ bool Synan::isInfixE_() {
 }
 
 bool Synan::isInfixF() {
-	Logger::getInstance().debug("Infix F: %d", pos);
+	Logger::getInstance().debug("Infix F: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	if(isInfixG() && isInfixG_()) {
 		return true;
 	}
@@ -537,7 +548,7 @@ bool Synan::isInfixF() {
 }
 
 bool Synan::isInfixG_() {
-	Logger::getInstance().debug("Infix G_: %d", pos);
+	Logger::getInstance().debug("Infix G_: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 	AstExpr* expr = exprs.back();
 
 	if((isTokenType(Token::PPLUS) || isTokenType(Token::MMINUS))) {
@@ -565,9 +576,9 @@ bool Synan::isInfixG_() {
 }
 
 bool Synan::isInfixG() {
-	Logger::getInstance().debug("Infix G: %d", pos);
+	Logger::getInstance().debug("Infix G: tokens[%d] = %s", pos, tokens[pos].getName().c_str());
 
-	if((isConstExpr() || isVariableAccess() || isFunctionCall() || isEnclosedExpr())) {
+	if((isFunctionCall() || isConstExpr() || isVariableAccess() || isEnclosedExpr())) {
 		Logger::getInstance().debug("Infix const", pos);
 		return true;
 	}
@@ -727,7 +738,7 @@ bool Synan::isReturnStmt() {
 			return false;
 		}
 
-		stmts.push_back(new AstReturnStmt(expr));
+		stmts.push_back(new AstReturnStmt(expr, currentFunction));
 		return true;
 	}
 

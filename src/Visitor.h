@@ -9,6 +9,7 @@ class AstFunDecl;
 class AstTypeDecl;
 class AstStructDecl;
 
+class AstType;
 class AstAtomType;
 class AstNamedType;
 class AstPtrType;

@@ -2,6 +2,29 @@
 #include "Ast.h"
 #include "Logger.h"
 
+bool TypeResolver::resolvePtrOrArrType(AstType* left, AstType* right) {
+	while(true) {
+		// Logger::getInstance().debug("%s %s", left->toString().c_str(), right->toString().c_str());
+		if(left->type != right->type) {
+			return false;
+		}
+
+		if(left->type == AstType::PTR) {
+			left = ((AstPtrType*) left)->ptrType;
+			right = ((AstPtrType*) right)->ptrType;
+		}
+		else if(left->type == AstType::ARRAY) {
+			left = ((AstArrayType*) left)->arrayType;
+			right = ((AstArrayType*) right)->arrayType;
+		}
+		else {
+			break;
+		}
+	}
+
+	return true;
+}
+
 
 bool TypeResolver::visit(AstVarDecl* varDecl, Phase phase) {
 	if(!varDecl->type->accept(this, phase)) {
@@ -12,6 +35,23 @@ bool TypeResolver::visit(AstVarDecl* varDecl, Phase phase) {
 		return false;
 	}
 
+	if(varDecl->expr) {
+		if(varDecl->type->type != varDecl->expr->ofType->type) {
+			Logger::getInstance().error("Type error: Type mismatch at variable declaration %s", varDecl->name.c_str());
+			return false;
+		}
+
+		if(varDecl->type->type == AstType::PTR || varDecl->type->type == AstType::ARRAY) {
+			AstType* left = varDecl->type;
+			AstType* right =varDecl->expr->ofType;
+			if(!resolvePtrOrArrType(left, right)) {
+				Logger::getInstance().error("Type error: Pointer type mismatch at variable declaration %s", varDecl->name.c_str());
+				return false;
+			}
+		}
+	}
+
+	Logger::getInstance().log("Type resolved: %s", varDecl->prettyToString().c_str());
 	return true;
 }
 
@@ -62,6 +102,10 @@ bool TypeResolver::visit(AstPtrType* ptrType, Phase phase) {
 }
 
 bool TypeResolver::visit(AstArrayType* arrayType, Phase phase) {
+	if(!arrayType->expr->accept(this, phase)) {
+		return false;
+	}
+
 	return true;
 }
 
@@ -70,7 +114,7 @@ bool TypeResolver::visit(AstConstExpr* constExpr, Phase phase) {
 	AstType::Type type;
 	if(constExpr->type == Token::NUMBER) {
 		type = AstType::INT;
-	} else if(constExpr->type == Token::CHAR) {
+	} else if(constExpr->type == Token::CHARACTER) {
 		type = AstType::CHAR;
 	} else if(constExpr->type == Token::TRUE || constExpr->type == Token::FALSE) {
 		type = AstType::BOOL;
@@ -86,12 +130,16 @@ bool TypeResolver::visit(AstConstExpr* constExpr, Phase phase) {
 	} 
 
 	constExpr->ofType = new AstAtomType(type);
+
+	// Logger::getInstance().log("Type resolved: %s", constExpr->toString().c_str());
 	return true;
 }
 
 bool TypeResolver::visit(AstNamedExpr* namedExpr, Phase phase) {
 	AstVarDecl* decl = (AstVarDecl*)namedExpr->declaration;
 	namedExpr->ofType = decl->type;
+
+	// Logger::getInstance().log("Type resolved: %s", namedExpr->toString().c_str());
 	return true;
 }
 
@@ -102,7 +150,30 @@ bool TypeResolver::visit(AstCallExpr* callExpr, Phase phase) {
 	}
 
 	AstFunDecl* decl = (AstFunDecl*)callExpr->declaration;
+
+	if(decl->params) {
+		if(decl->params->size() != callExpr->args.size()) {
+			Logger::getInstance().error("Type error: Function %s expects %d arguments, but %d were given", decl->name.c_str(), decl->params->size(), callExpr->args.size());
+			return false;
+		}
+		
+		for(int i = 0; i < decl->params->size(); i++) {
+			if(decl->params->params[i].type->type != callExpr->args[i]->ofType->type) {
+				Logger::getInstance().error("Type error: Function %s was given invalid argument %s", decl->name.c_str(), decl->params->params[i].name.c_str());
+				return false;
+			}
+		}
+	}
+	else {
+		if(callExpr->args.size() > 0) {
+			Logger::getInstance().error("Type error: Function %s expects no arguments, but %d were given", decl->name.c_str(), callExpr->args.size());
+			return false;
+		}
+	}
+
 	callExpr->ofType = decl->type;
+
+	// Logger::getInstance().log("Type resolved: %s", callExpr->toString().c_str());
 	return true;
 }
 
@@ -111,7 +182,18 @@ bool TypeResolver::visit(AstCastExpr* castExpr, Phase phase) {
 		return false;
 	}
 
+	if(castExpr->type->type == AstType::VOID) {
+		Logger::getInstance().error("Type error: Cannot cast to void %s", castExpr->toString().c_str());
+		return false;
+	}
+	else if(castExpr->expr->ofType->type == AstType::VOID) {
+		Logger::getInstance().error("Type error: Cannot cast from void %s", castExpr->toString().c_str());
+		return false;
+	}
+
 	castExpr->ofType = castExpr->type;
+
+	// Logger::getInstance().log("Type resolved: %s", castExpr->toString().c_str());
 	return true;
 }
 
@@ -177,6 +259,7 @@ bool TypeResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 		
 	};
 
+	// Logger::getInstance().log("Type resolved: %s", prefixExpr->toString().c_str());
 	return true;
 }
 
@@ -210,9 +293,29 @@ bool TypeResolver::visit(AstPostfixExpr* postfixExpr, Phase phase) {
 		case AstPostfixExpr::PTRACCESS: // id->id
 			break;
 		case AstPostfixExpr::ARRAYACCESS: // id[id]
+			if(!postfixExpr->index->accept(this, phase)) {
+				return false;
+			}
+
+			AstNamedExpr* namedExpr = (AstNamedExpr*)postfixExpr->expr;
+			AstVarDecl* decl = (AstVarDecl*)namedExpr->declaration;
+
+			if(postfixExpr->index->ofType->type != AstType::INT) {
+				Logger::getInstance().error("Type error: Array index must be of type int %s: %s", namedExpr->name.c_str(), postfixExpr->toString().c_str());
+				return false;
+			}
+
+			if(decl->type->type == AstType::ARRAY) {
+				postfixExpr->expr->ofType = ((AstArrayType*)decl->type)->arrayType;
+			}
+			else {
+				Logger::getInstance().error("Type error: Invalid array type %s", postfixExpr->toString().c_str());
+				return false;
+			}
 			break;
 	};
 
+	// Logger::getInstance().log("Type resolved: %s", postfixExpr->toString().c_str());
 	return true;
 }
 
@@ -231,8 +334,80 @@ bool TypeResolver::visit(AstBinaryExpr* binaryExpr, Phase phase) {
 		case AstBinaryExpr::MUL:
 		case AstBinaryExpr::DIV:
 		case AstBinaryExpr::MOD:
+			if(binaryExpr->left->ofType->type == AstType::INT && binaryExpr->right->ofType->type == AstType::INT) {
+				binaryExpr->ofType = binaryExpr->left->ofType;
+			}
+			else if(binaryExpr->left->ofType->type == AstType::FLOAT && binaryExpr->right->ofType->type == AstType::FLOAT) {
+				binaryExpr->ofType = binaryExpr->left->ofType;
+			}
+			else if(binaryExpr->left->ofType->type == AstType::PTR && binaryExpr->right->ofType->type == AstType::INT) {
+				binaryExpr->ofType = binaryExpr->left->ofType;
+			}
+			else if(binaryExpr->left->ofType->type == AstType::INT && binaryExpr->right->ofType->type == AstType::PTR) {
+				binaryExpr->ofType = binaryExpr->right->ofType;
+			}
+			else if(binaryExpr->left->ofType->type == AstType::CHAR && binaryExpr->right->ofType->type == AstType::INT) {
+				binaryExpr->ofType = binaryExpr->left->ofType;
+			}
+			else if(binaryExpr->left->ofType->type == AstType::INT && binaryExpr->right->ofType->type == AstType::CHAR) {
+				binaryExpr->ofType = binaryExpr->right->ofType;
+			}
+			else {
+				Logger::getInstance().error("Type error: Invalid type for binary operator %s", binaryExpr->toString().c_str());
+				return false;
+			}
+			break;
+		case AstBinaryExpr::EQU:
+		case AstBinaryExpr::NEQ:
+		case AstBinaryExpr::LESS:
+		case AstBinaryExpr::LESS_EQU:
+		case AstBinaryExpr::GREATER:
+		case AstBinaryExpr::GREATER_EQU:
+			if(binaryExpr->left->ofType->type == AstType::INT && binaryExpr->right->ofType->type == AstType::INT) {
+				binaryExpr->ofType = new AstAtomType(AstAtomType::BOOL);
+			}
+			else if(binaryExpr->left->ofType->type == AstType::FLOAT && binaryExpr->right->ofType->type == AstType::FLOAT) {
+				binaryExpr->ofType = new AstAtomType(AstAtomType::BOOL);
+			}
+			else if(binaryExpr->left->ofType->type == AstType::PTR && binaryExpr->right->ofType->type == AstType::PTR) {
+				if(!resolvePtrOrArrType(binaryExpr->left->ofType, binaryExpr->right->ofType)) {
+					Logger::getInstance().error("Type error: Invalid type for binary operator %s", binaryExpr->toString().c_str());
+					return false;
+				}
+				binaryExpr->ofType = new AstAtomType(AstAtomType::BOOL);
+			}
+			else if(binaryExpr->left->ofType->type == AstType::CHAR && binaryExpr->right->ofType->type == AstType::CHAR) {
+				binaryExpr->ofType = new AstAtomType(AstAtomType::BOOL);
+			}
+			else {
+				Logger::getInstance().error("Type error: Invalid type for binary operator %s", binaryExpr->toString().c_str());
+				return false;
+			}
+			break;
+		case AstBinaryExpr::AND:
+		case AstBinaryExpr::OR:
+		case AstBinaryExpr::XOR:
+			if(binaryExpr->left->ofType->type == AstType::INT && binaryExpr->right->ofType->type == AstType::INT) {
+				binaryExpr->ofType = binaryExpr->left->ofType;
+			}
+			else {
+				Logger::getInstance().error("Type error: Invalid type for binary operator %s", binaryExpr->toString().c_str());
+				return false;
+			}
+			break;
+		case AstBinaryExpr::ANDAND:
+		case AstBinaryExpr::OROR:
+			if(binaryExpr->left->ofType->type == AstType::BOOL && binaryExpr->right->ofType->type == AstType::BOOL) {
+				binaryExpr->ofType = binaryExpr->left->ofType;
+			}
+			else {
+				Logger::getInstance().error("Type error: Invalid type for binary operator %s", binaryExpr->toString().c_str());
+				return false;
+			}
 			break;
 	};
+
+	// Logger::getInstance().log("Type resolved: %s", binaryExpr->toString().c_str());
 	return true;
 }
 
@@ -242,6 +417,7 @@ bool TypeResolver::visit(AstExprStmt* exprStmt, Phase phase) {
 		return false;
 	}
 
+	Logger::getInstance().log("Type resolved: %s", exprStmt->prettyToString().c_str());
 	return true;
 }
 
@@ -262,14 +438,22 @@ bool TypeResolver::visit(AstAssignStmt* assignStmt, Phase phase) {
 		return false;
 	}
 
+	if(assignStmt->left->ofType->type == AstType::PTR || assignStmt->left->ofType->type == AstType::ARRAY) {
+		if(!resolvePtrOrArrType(assignStmt->left->ofType, assignStmt->right->ofType)) {
+			Logger::getInstance().error("Type error: Invalid type for pointer assignment %s", assignStmt->toString().c_str());
+			return false;
+		}
+	}
+
 	// check for += -= *= /= %=
 	if(assignStmt->op != AstAssignStmt::EQU) {
-		if(assignStmt->left->ofType->type != AstType::INT || assignStmt->left->ofType->type != AstType::FLOAT) {
+		if(assignStmt->left->ofType->type != AstType::INT && assignStmt->left->ofType->type != AstType::FLOAT) {
 			Logger::getInstance().error("Type error: Invalid type for assignment %s", assignStmt->toString().c_str());
 			return false;
 		}
 	}
 
+	Logger::getInstance().log("Type resolved: %s", assignStmt->prettyToString().c_str());
 	return true;
 }
 
@@ -297,10 +481,11 @@ bool TypeResolver::visit(AstIfStmt* ifStmt, Phase phase) {
 		return false;
 	}
 
-	if(!ifStmt->elseStmt->accept(this, phase)) {
+	if(ifStmt->elseStmt && !ifStmt->elseStmt->accept(this, phase)) {
 		return false;
 	}
 
+	Logger::getInstance().log("Type resolved: %s", ifStmt->prettyToString().c_str());
 	return true;
 }
 
@@ -318,6 +503,7 @@ bool TypeResolver::visit(AstWhileStmt* whileStmt, Phase phase) {
 		return false;
 	}
 
+	Logger::getInstance().log("Type resolved: %s", whileStmt->prettyToString().c_str());
 	return true;
 }
 
@@ -326,6 +512,24 @@ bool TypeResolver::visit(AstReturnStmt* returnStmt, Phase phase) {
 		return false;
 	}
 
+	if(returnStmt->expr) { // not void
+		if(!resolvePtrOrArrType(returnStmt->expr->ofType, returnStmt->funDecl->type)) {
+			Logger::getInstance().error("Type error: Type mismatch for return in function %s", returnStmt->funDecl->name.c_str());
+			return false;
+		}
+
+		returnStmt->ofType = returnStmt->expr->ofType;
+	}
+	else {	// return void
+		if(returnStmt->funDecl->type->type != AstType::VOID) {
+			Logger::getInstance().error("Type error: Invalid return statement in function %s", returnStmt->funDecl->name.c_str());
+			return false;
+		}
+
+		returnStmt->ofType = returnStmt->funDecl->type;
+	}
+
+	Logger::getInstance().log("Type resolved: %s", returnStmt->prettyToString().c_str());
 	return true;
 }
 
@@ -334,5 +538,6 @@ bool TypeResolver::visit(AstVarStmt* varStmt, Phase phase) {
 		return false;
 	}
 
+	// Logger::getInstance().log("Type resolved: %s", varStmt->prettyToString().c_str());
 	return true;
 }

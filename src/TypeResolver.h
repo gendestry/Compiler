@@ -11,6 +11,7 @@ class TypeResolver : public Visitor {
 	// bool checkType(SemType* type, T last) {
 	// 	return type->getType() == last;
 	// }
+	bool resolvePtrOrArrType(AstType* left, AstType* right);
 
 public:
 	bool visit(AstVarDecl* varDecl, Phase phase) override;
