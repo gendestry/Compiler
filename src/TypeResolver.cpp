@@ -85,6 +85,18 @@ bool TypeResolver::visit(AstTypeDecl* typeDecl, Phase phase) {
 }
 
 bool TypeResolver::visit(AstStructDecl* structDecl, Phase phase) {
+	std::string name = structDecl->name;
+	
+	for(AstVarDecl& decl : structDecl->fields) {
+		if(!decl.accept(this, phase)) {
+			return false;
+		}
+
+		structMap[name][decl.name] = decl.type;
+		// Logger::getInstance().log("structMap[%s][%s] = %s", name.c_str(), decl.name.c_str(), decl.type->prettyToString().c_str());
+	}
+
+	Logger::getInstance().log("Type resolved: %s", structDecl->prettyToString().c_str());
 	return true;
 }
 
@@ -289,8 +301,33 @@ bool TypeResolver::visit(AstPostfixExpr* postfixExpr, Phase phase) {
 			}
 			break;
 		case AstPostfixExpr::ACCESS: // id.id
+			if(postfixExpr->expr->ofType->type == AstType::NAMED) {
+				AstNamedType* namedType = (AstNamedType*)postfixExpr->expr->ofType;
+				AstType* type = structMap[namedType->name][postfixExpr->name];
+				postfixExpr->ofType = type;
+			}
+			else {
+				Logger::getInstance().error("Type error: How did you get here? %s", postfixExpr->toString().c_str());
+				return false;
+			}
 			break;
 		case AstPostfixExpr::PTRACCESS: // id->id
+			if(postfixExpr->expr->ofType->type == AstType::PTR) {
+				AstPtrType* ptrType = (AstPtrType*)postfixExpr->expr->ofType;
+				if(ptrType->ptrType->type == AstType::NAMED) {
+					AstNamedType* namedType = (AstNamedType*)ptrType->ptrType;
+					AstType* type = structMap[namedType->name][postfixExpr->name];
+					postfixExpr->ofType = type;
+				}
+				else {
+					Logger::getInstance().error("Type error: Trying to access a nonexisting struct element %s", postfixExpr->toString().c_str());
+					return false;
+				}
+			}
+			else {
+				Logger::getInstance().error("Type error: Trying to access non-pointer struct with -> %s", postfixExpr->toString().c_str());
+				return false;
+			}	
 			break;
 		case AstPostfixExpr::ARRAYACCESS: // id[id]
 			if(!postfixExpr->index->accept(this, phase)) {

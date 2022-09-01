@@ -122,7 +122,7 @@ bool NameResolver::visit(AstStructDecl* structDecl, Phase phase) {
 			Logger::getInstance().error("Name error: Struct %s[%d] redeclared!", structDecl->name.c_str(), depth);
 			return false;
 		}
-		symbolTable.push_back({ structDecl->name, false, depth , structDecl});
+		symbolTable.push_back({ structDecl->name, true, depth , structDecl});
 	}
 	else {
 		depth++;

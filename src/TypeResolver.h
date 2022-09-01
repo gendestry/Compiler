@@ -1,5 +1,6 @@
 #pragma once
 #include "Visitor.h"
+#include <unordered_map>
 
 class TypeResolver : public Visitor {
 	// template<typename T, typename... Args>
@@ -12,6 +13,7 @@ class TypeResolver : public Visitor {
 	// 	return type->getType() == last;
 	// }
 	bool resolvePtrOrArrType(AstType* left, AstType* right);
+	std::unordered_map<std::string, std::unordered_map<std::string, AstType*>> structMap;
 
 public:
 	bool visit(AstVarDecl* varDecl, Phase phase) override;

@@ -89,23 +89,40 @@
 
 // int neki() { return 3; }
 // int[10] asd;
-int[10][10] floor;
+// int[10][10] floor;
 // typedef int* ptr;
 // ptr xd = (int*)3;
 
-int getX(int index) {
-	return floor[index][0];
+// int getX(int index) {
+// 	return floor[index][0];
+// }
+
+// char* helloworld () {
+// 	return "helloworld!";
+// }
+
+struct other {
+	char x;
+	int y;
 }
 
-char* helloworld () {
-	return "helloworld!";
+struct sth {
+	other* o;
+	int b;
 }
 
 int main(char c) {
-	c = 'c';
-	int* sth = (int*)&c;
-	int z = getX(1) + (int)c;
-	return z;
+	// sth xd;
+	// xd.o->x = 'c';
+	sth xd;
+	xd.o->x = '3';
+	xd.b = 3;
+	return xd.o->y;
+	// int* x = new int[10];
+
+	// c = 'c';
+	// int* sth = (int*)&c;
+	// int z = getX(1) + (int)c;
 
 	// int x = (int)(neki());
 

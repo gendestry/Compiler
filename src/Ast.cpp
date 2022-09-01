@@ -61,7 +61,7 @@ std::string AstType::getTypeName() const {
 	case AstType::BOOL: ret = "bool"; break;
 	case AstType::VOID: ret = "void"; break;
 	case AstType::FLOAT: ret = "float"; break;
-	case AstType::NAMED: ret = "named"; break;
+	case AstType::NAMED: ret = ((AstNamedType*)this)->name; break;
 	case AstType::PTR: ret = ((AstPtrType*)this)->ptrType->getTypeName(); ret += "*"; break;
 	case AstType::ARRAY: ret = ((AstArrayType*)this)->arrayType->getTypeName(); ret += "[]"; break;
 	default: 
@@ -351,7 +351,7 @@ std::string AstType::prettyGetTypeName() const {
 	case AstType::BOOL: ret = "bool"; break;
 	case AstType::VOID: ret = "void"; break;
 	case AstType::FLOAT: ret = "float"; break;
-	case AstType::NAMED: ret = "named"; break;
+	case AstType::NAMED: ret = ((AstNamedType*)this)->name; break;
 	case AstType::PTR: ret = ((AstPtrType*)this)->ptrType->prettyGetTypeName(); ret+= "*"; break;
 	case AstType::ARRAY: ret = ((AstArrayType*)this)->arrayType->prettyGetTypeName(); ret +="[]"; break;
 	default: 
