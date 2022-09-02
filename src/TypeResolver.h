@@ -1,19 +1,9 @@
 #pragma once
 #include "Visitor.h"
-#include <unordered_map>
 
 class TypeResolver : public Visitor {
-	// template<typename T, typename... Args>
-	// bool checkType(SemType* type, T current, Args... args) {
-	// 	return (type->getType() == current) || checkType(type, args...);
-	// }
-
-	// template<typename T>
-	// bool checkType(SemType* type, T last) {
-	// 	return type->getType() == last;
-	// }
+private:
 	bool resolvePtrOrArrType(AstType* left, AstType* right);
-	std::unordered_map<std::string, std::unordered_map<std::string, AstType*>> structMap;
 
 public:
 	bool visit(AstVarDecl* varDecl, Phase phase) override;

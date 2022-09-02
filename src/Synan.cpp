@@ -69,7 +69,7 @@ bool Synan::isVarDecl() {
 			return false;
 		}
 
-		decls.push_back(new AstVarDecl(name, type, expr));
+		decls.push_back(new AstVarDecl({ type->loc.line, type->loc.start, expr ? expr->loc.end : tokens[pos - 1].getEnd() }, name, type, expr));
 		return true;
 	}
 
@@ -93,11 +93,11 @@ bool Synan::isFunDecl() {
 					decls.pop_back();
 				}
 				
-				decls.push_back(new AstFunDecl(name, type, pDecl));
+				decls.push_back(new AstFunDecl({ type->loc.line, type->loc.start, tokens[pos - 1].getEnd() }, name, type, pDecl));
 				return true;
 			}
 
-			AstFunDecl* temp = new AstFunDecl(name, type, nullptr, nullptr);
+			AstFunDecl* temp = new AstFunDecl({ type->loc.line, type->loc.start, 0 }, name, type, nullptr, nullptr);
 			currentFunction = temp;
 
 			if(isCompoundStmt()) {
@@ -110,6 +110,8 @@ bool Synan::isFunDecl() {
 				temp->params = pDecl;
 				temp->body = stmts.back();
 				decls.push_back(temp);
+				temp->loc.end = stmts.back()->loc.end;
+
 				Logger::getInstance().debug("Compound stmt");
 				return true;
 			}
@@ -125,14 +127,16 @@ bool Synan::isFunDecl() {
 bool Synan::isParDecl() {
 	if(isType() && isTokenType(Token::IDENTIFIER)) {
 		std::vector<AstVarDecl> varDecls;
-		varDecls.emplace_back(tokens[pos - 1].getText(), types.back());
+		AstType* type = types.back();
+
+		varDecls.push_back(AstVarDecl({type->loc.line, type->loc.start, tokens[pos - 1].getEnd() }, tokens[pos - 1].getText(), type));
 		
 		while(isTokenType(Token::COMMA) && isType() && isTokenType(Token::IDENTIFIER)) {
-			varDecls.emplace_back(tokens[pos - 1].getText(), types.back());
+			varDecls.push_back(AstVarDecl({type->loc.line, type->loc.start, tokens[pos - 1].getEnd() }, tokens[pos - 1].getText(), types.back()));
 		}
 
 		Logger::getInstance().debug("Par decl");
-		decls.push_back(new AstParDecl(varDecls));
+		decls.push_back(new AstParDecl({ type->loc.line, type->loc.start, tokens[pos - 1].getEnd() }, varDecls));
 		return true;
 	}
 
@@ -149,7 +153,7 @@ bool Synan::isTypeDecl() {
 			return false;
 		}
 
-		decls.push_back(new AstTypeDecl(tokens[pos - 2].getText(), types.back()));
+		decls.push_back(new AstTypeDecl({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), tokens[pos - 1].getEnd() }, tokens[pos - 2].getText(), types.back()));
 		return true;
 	}
 
@@ -170,7 +174,7 @@ bool Synan::isStructDecl() {
 		} 
 		
 		if(isTokenType(Token::RBRACE)) {
-			decls.push_back(new AstStructDecl(name, fields));
+			decls.push_back(new AstStructDecl({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), tokens[pos - 1].getEnd() }, name, fields));
 			return true;
 		}
 	}
@@ -221,13 +225,13 @@ bool Synan::isAtomicType() {
 		return false;
 	}
 
-	types.push_back(new AstAtomType(type));
+	types.push_back(new AstAtomType({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), tokens[oldPos].getEnd() }, type));
 	return true;
 }
 
 bool Synan::isNamedType() {
 	if(isTokenType(Token::IDENTIFIER)) {
-		types.push_back(new AstNamedType(tokens[pos - 1].getText()));
+		types.push_back(new AstNamedType({ tokens[pos - 1].getLine(), tokens[pos - 1].getStart(), tokens[pos - 1].getEnd() }, tokens[pos - 1].getText()));
 		return true;
 	}
 
@@ -245,13 +249,13 @@ bool Synan::isPtrOrArrType() {
 			if(isTokenType(Token::LBRACKET) && isExpr() && isTokenType(Token::RBRACKET)) {
 				flag = true;
 
-				types.push_back(new AstArrayType(type, exprs.back()));
+				types.push_back(new AstArrayType({ type->loc.line, type->loc.start, tokens[pos - 1].getEnd() }, type, exprs.back()));
 
 			}
 			else if(isTokenType(Token::MULTIPLY)) {
 				flag = true;
 
-				types.push_back(new AstPtrType(type));
+				types.push_back(new AstPtrType({ type->loc.line, type->loc.start, tokens[pos - 1].getEnd() }, type));
 			}
 			else {
 				break;
@@ -280,23 +284,23 @@ bool Synan::isExpr() {
 
 bool Synan::isConstExpr() {
 	if(isTokenType(Token::NUMBER)) {
-		exprs.push_back(new AstConstExpr(std::stoi(tokens[pos - 1].getText())));
+		exprs.push_back(new AstConstExpr({ tokens[pos - 1].getLine(), tokens[pos - 1].getStart(), tokens[pos - 1].getEnd() }, std::stoi(tokens[pos - 1].getText())));
 		return true;
 	}
 	else if(isTokenType(Token::FNUMBER)) {
-		exprs.push_back(new AstConstExpr(std::stof(tokens[pos - 1].getText())));
+		exprs.push_back(new AstConstExpr({ tokens[pos - 1].getLine(), tokens[pos - 1].getStart(), tokens[pos - 1].getEnd() }, std::stof(tokens[pos - 1].getText())));
 		return true;
 	}
 	else if (isTokenType(Token::CHARACTER)) {
-		exprs.push_back(new AstConstExpr(tokens[pos - 1].getText()[0]));
+		exprs.push_back(new AstConstExpr({ tokens[pos - 1].getLine(), tokens[pos - 1].getStart(), tokens[pos - 1].getEnd() }, tokens[pos - 1].getText()[0]));
 		return true;
 	}
 	else if (isTokenType(Token::TRUE) || isTokenType(Token::FALSE)) {
-		exprs.push_back(new AstConstExpr(tokens[pos - 1].getType() == Token::TRUE));
+		exprs.push_back(new AstConstExpr({ tokens[pos - 1].getLine(), tokens[pos - 1].getStart(), tokens[pos - 1].getEnd() }, tokens[pos - 1].getType() == Token::TRUE));
 		return true;
 	}
 	else if(isTokenType(Token::STRING)) {
-		exprs.push_back(new AstConstExpr(tokens[pos - 1].getText()));
+		exprs.push_back(new AstConstExpr({ tokens[pos - 1].getLine(), tokens[pos - 1].getStart(), tokens[pos - 1].getEnd() }, tokens[pos - 1].getText()));
 		return true;
 	}
 
@@ -306,7 +310,7 @@ bool Synan::isConstExpr() {
 
 bool Synan::isVariableAccess() {
 	if(isTokenType(Token::IDENTIFIER)) {
-		exprs.push_back(new AstNamedExpr(tokens[pos - 1].getText()));
+		exprs.push_back(new AstNamedExpr({ tokens[pos - 1].getLine(), tokens[pos - 1].getStart(), tokens[pos - 1].getEnd() }, tokens[pos - 1].getText()));
 		return true;
 	}
 
@@ -328,7 +332,7 @@ bool Synan::isFunctionCall() {
 		}
 
 		if(isTokenType(Token::RPAREN)) {
-			exprs.push_back(new AstCallExpr(name, args));
+			exprs.push_back(new AstCallExpr({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), tokens[pos - 1].getEnd() }, name, args));
 			return true;
 		}
 	}
@@ -375,7 +379,7 @@ bool Synan::isInfixA_() {
 		AstExpr* expr = exprs.back();
 		if(isInfixA()) {
 			Logger::getInstance().debug("Infix expr: binbin", pos);
-			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			exprs.push_back(new AstBinaryExpr({ expr->loc.line, expr->loc.start, exprs.back()->loc.end }, (AstBinaryExpr::Binary)type, expr, exprs.back()));
 			isInfixA_();
 			return true;
 		}
@@ -401,7 +405,7 @@ bool Synan::isInfixB_() {
 		AstExpr* expr = exprs.back();
 		if(isInfixB()) {
 			Logger::getInstance().debug("Infix expr: bin", pos);
-			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			exprs.push_back(new AstBinaryExpr({ expr->loc.line, expr->loc.start, exprs.back()->loc.end }, (AstBinaryExpr::Binary)type, expr, exprs.back()));
 			isInfixB_();
 			return true;
 		}
@@ -427,7 +431,7 @@ bool Synan::isInfixC_() {
 		AstExpr* expr = exprs.back();
 		if(isInfixC()) {
 			Logger::getInstance().debug("Infix expr: comp", pos);
-			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			exprs.push_back(new AstBinaryExpr({ expr->loc.line, expr->loc.start, exprs.back()->loc.end }, (AstBinaryExpr::Binary)type, expr, exprs.back()));
 			isInfixC_();
 			return true;
 		}
@@ -453,7 +457,7 @@ bool Synan::isInfixD_() {
 		AstExpr* expr = exprs.back();
 		if(isInfixD()) {
 			Logger::getInstance().debug("Infix expr: add\n", pos);
-			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			exprs.push_back(new AstBinaryExpr({ expr->loc.line, expr->loc.start, exprs.back()->loc.end }, (AstBinaryExpr::Binary)type, expr, exprs.back()));
 			isInfixD_();
 			return true;
 		}
@@ -482,7 +486,7 @@ bool Synan::isInfixE() {
 		if(isInfixE()) {
 			AstExpr* expr = exprs.back();
 			exprs.pop_back();
-			exprs.push_back(new AstPrefixExpr((AstPrefixExpr::Prefix)type, expr));
+			exprs.push_back(new AstPrefixExpr({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), expr->loc.end }, (AstPrefixExpr::Prefix)type, expr));
 
 			Logger::getInstance().debug("Prefix expr", pos);
 			return true;
@@ -493,7 +497,7 @@ bool Synan::isInfixE() {
 
 			if(isInfixE()) {
 				AstExpr* expr = exprs.back();
-				exprs.push_back(new AstCastExpr(type, expr));
+				exprs.push_back(new AstCastExpr({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), expr->loc.end }, type, expr));
 				Logger::getInstance().debug("Cast expr", pos);
 				return true;
 			}	
@@ -516,7 +520,7 @@ bool Synan::isInfixE_() {
 		AstExpr* expr = exprs.back();
 		if(isInfixE()) {
 			Logger::getInstance().debug("Infix Expr: mul", pos);
-			exprs.push_back(new AstBinaryExpr((AstBinaryExpr::Binary)type, expr, exprs.back()));
+			exprs.push_back(new AstBinaryExpr({ expr->loc.line, expr->loc.start, exprs.back()->loc.end }, (AstBinaryExpr::Binary)type, expr, exprs.back()));
 			isInfixE_();
 			return true;
 		}
@@ -540,22 +544,22 @@ bool Synan::isInfixG_() {
 	AstExpr* expr = exprs.back();
 
 	if((isTokenType(Token::PPLUS) || isTokenType(Token::MMINUS))) {
-		exprs.push_back(new AstPostfixExpr((AstPostfixExpr::Postfix)tokens[pos - 1].getType(), expr));
+		exprs.push_back(new AstPostfixExpr({ expr->loc.line, expr->loc.start, tokens[pos - 1].getEnd() }, (AstPostfixExpr::Postfix)tokens[pos - 1].getType(), expr));
 		isInfixG_();
 	}
 	else if((isTokenType(Token::DOT) && isTokenType(Token::IDENTIFIER))) {
 		std::string name = tokens[pos - 1].getText();
-		exprs.push_back(new AstPostfixExpr((AstPostfixExpr::Postfix)tokens[pos - 2].getType(), expr, name));
+		exprs.push_back(new AstPostfixExpr({ expr->loc.line, expr->loc.start, tokens[pos - 1].getEnd() }, (AstPostfixExpr::Postfix)tokens[pos - 2].getType(), expr, name));
 		isInfixG_();
 	}
 	else if((isTokenType(Token::PTR) && isTokenType(Token::IDENTIFIER))) {
 		std::string name = tokens[pos - 1].getText();
-		exprs.push_back(new AstPostfixExpr((AstPostfixExpr::Postfix)tokens[pos - 2].getType(), expr, name));
+		exprs.push_back(new AstPostfixExpr({ expr->loc.line, expr->loc.start, tokens[pos - 1].getEnd() }, (AstPostfixExpr::Postfix)tokens[pos - 2].getType(), expr, name));
 		isInfixG_();
 	}
 	else if(isTokenType(Token::LBRACKET) && isExpr() && isTokenType(Token::RBRACKET)) {
 		AstExpr* index = exprs.back();
-		exprs.push_back(new AstPostfixExpr(AstPostfixExpr::ARRAYACCESS, expr, index));
+		exprs.push_back(new AstPostfixExpr({ expr->loc.line, expr->loc.start, tokens[pos - 1].getEnd() }, AstPostfixExpr::ARRAYACCESS, expr, index));
 		isInfixG_();
 	}
 	
@@ -594,7 +598,7 @@ bool Synan::isStmt() {
 		return true;
 	}
 	else if(isVarDecl()) {
-		stmts.push_back(new AstVarStmt(*(AstVarDecl*)decls.back()));
+		stmts.push_back(new AstVarStmt(decls.back()->loc, *(AstVarDecl*)decls.back()));
 		decls.pop_back();
 		Logger::getInstance().debug("Var decl stmt");
 		return true;
@@ -621,7 +625,7 @@ bool Synan::isExprStmt() {
 			return false;
 		}
 
-		stmts.push_back(new AstExprStmt(exprs.back()));
+		stmts.push_back(new AstExprStmt({ exprs.back()->loc.line, exprs.back()->loc.start, tokens[pos - 1].getEnd() }, exprs.back()));
 		return true;
 	}
 
@@ -632,19 +636,22 @@ bool Synan::isExprStmt() {
 bool Synan::isAssignStmt() {
 	int oldPos = pos;
 
-	if(isExpr()) {// && isTokenType(Token::ASSIGN) && isExpr()) {
+	if(isExpr()) {
 		AstExpr* left = exprs.back();
+
 		if(isTokenType(Token::ASSIGN) || isTokenType(Token::PLUSEQU) || isTokenType(Token::MINUSEQU) || isTokenType(Token::MULTEQU) || isTokenType(Token::DIVEQU) || isTokenType(Token::MODEQU)) {
 			Token::TokenType type = tokens[pos - 1].getType();
+
 			if(isExpr()) {
 				AstExpr* right = exprs.back();
+
 				if(!isTokenType(Token::SEMICOLON)) {
 					Logger::getInstance().error("Syntax error line %d: expected ';'", tokens[pos].getLine());
 					pos = oldPos;
 					return false;
 				}
 
-				stmts.push_back(new AstAssignStmt(left, right, (AstAssignStmt::Assign)type));
+				stmts.push_back(new AstAssignStmt({ left->loc.line, left->loc.start, tokens[pos - 1].getEnd() }, left, right, (AstAssignStmt::Assign)type));
 				return true;
 			}
 		}
@@ -666,7 +673,7 @@ bool Synan::isCompoundStmt() {
 	}
 
 	if(isTokenType(Token::RBRACE)) {
-		stmts.push_back(new AstCompStmt(cstmts));
+		stmts.push_back(new AstCompStmt({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), tokens[pos - 1].getEnd() }, cstmts));
 		return true;
 	}
 
@@ -683,14 +690,14 @@ bool Synan::isIfStmt() {
 			AstStmt* stmt = stmts.back();
 			if(isTokenType(Token::ELSE)) {
 				if(isStmt()) {
-					stmts.push_back(new AstIfStmt(expr, stmt, stmts.back()));
+					stmts.push_back(new AstIfStmt({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), stmts.back()->loc.end }, expr, stmt, stmts.back()));
 					return true;
 				}
 
 				return false;
 			}
 
-			stmts.push_back(new AstIfStmt(expr, stmt));
+			stmts.push_back(new AstIfStmt({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), stmt->loc.end }, expr, stmt));
 			return true;
 		}
 	}
@@ -704,7 +711,7 @@ bool Synan::isWhileStmt() {
 	if(isTokenType(Token::WHILE) && isEnclosedExpr()) {
 		AstExpr* cond = exprs.back();
 		if(isStmt()) {
-			stmts.push_back(new AstWhileStmt(cond, stmts.back()));
+			stmts.push_back(new AstWhileStmt({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), stmts.back()->loc.end }, cond, stmts.back()));
 			return true;
 		}
 	}
@@ -726,7 +733,7 @@ bool Synan::isReturnStmt() {
 			return false;
 		}
 
-		stmts.push_back(new AstReturnStmt(expr, currentFunction));
+		stmts.push_back(new AstReturnStmt({ tokens[oldPos].getLine(), tokens[oldPos].getStart(), tokens[pos - 1].getEnd() }, expr, currentFunction));
 		return true;
 	}
 

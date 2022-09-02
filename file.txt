@@ -101,6 +101,8 @@
 // 	return "helloworld!";
 // }
 
+int x = 3;
+
 struct other {
 	char x;
 	int y;
@@ -111,13 +113,21 @@ struct sth {
 	int b;
 }
 
+typedef int stevilka;
+
 int main(char c) {
 	// sth xd;
 	// xd.o->x = 'c';
+	stevilka x = 3;
+	// int xd;
+
 	sth xd;
-	xd.o->x = '3';
+	xd.o->x = (char)(xd.o->y)++;
 	xd.b = 3;
 	return xd.o->y;
+
+	int** arr;
+	arr[0][1] = 4;
 	// int* x = new int[10];
 
 	// c = 'c';

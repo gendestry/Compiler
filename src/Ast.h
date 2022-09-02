@@ -5,6 +5,7 @@
 #include "Token.h"
 #include "Visitor.h"
 
+
 class AstDecl;
 class AstType;
 class AstExpr;
@@ -17,6 +18,9 @@ public:
 	
 	virtual std::string toString() const = 0;
 	virtual std::string prettyToString() const = 0;
+
+public:
+	Location loc;
 };
 
 /* ----- DECLS ----- */
@@ -30,7 +34,7 @@ public:
 
 class AstVarDecl : public AstDecl {
 public:
-	AstVarDecl(std::string name, AstType* type, AstExpr* expr = nullptr) : name(name), type(type), expr(expr) {}
+	AstVarDecl(Location location, std::string name, AstType* type, AstExpr* expr = nullptr) : name(name), type(type), expr(expr) { loc = location;	}
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 	
@@ -44,7 +48,7 @@ public:
 
 class AstParDecl : public AstDecl {
 public:
-	AstParDecl(std::vector<AstVarDecl>params) : params(params) {}
+	AstParDecl(Location location, std::vector<AstVarDecl>params) : params(params) {	loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -57,7 +61,8 @@ public:
 
 class AstFunDecl : public AstDecl {
 public:
-	AstFunDecl(std::string name, AstType* type, AstParDecl* params = nullptr, AstStmt* body = nullptr) : name(name), type(type), params(params), body(body) {}
+	AstFunDecl(Location location, std::string name, AstType* type, AstParDecl* params = nullptr, AstStmt* body = nullptr) 
+		: name(name), type(type), params(params), body(body) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -72,7 +77,7 @@ public:
 
 class AstTypeDecl : public AstDecl {
 public:
-	AstTypeDecl(std::string name, AstType* type) : name(name), type(type) {}
+	AstTypeDecl(Location location, std::string name, AstType* type) : name(name), type(type) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -85,7 +90,7 @@ public:
 
 class AstStructDecl : public AstDecl {
 public:
-	AstStructDecl(std::string name, std::vector<AstVarDecl> fields) : name(name), fields(fields) {}
+	AstStructDecl(Location location, std::string name, std::vector<AstVarDecl> fields) : name(name), fields(fields) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -110,18 +115,18 @@ public:
 		PTR,
 		ARRAY
 	};
+	
+	Type type;
 public:
 	virtual std::string toString() const override;
 	virtual std::string prettyToString() const override;
 	std::string getTypeName() const;
-	std::string prettyGetTypeName() const;
-
-	Type type;
+	std::string prettyGetTypeName() const;	
 };
 
 class AstAtomType : public AstType {
 public:
-	AstAtomType(Type atomType) { type = atomType; }
+	AstAtomType(Location location, Type atomType) { type = atomType; loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -132,7 +137,7 @@ public:
 
 class AstNamedType : public AstType {
 public:
-	AstNamedType(std::string name) : name(name) { type = NAMED; }
+	AstNamedType(Location location, std::string name) : name(name) { type = NAMED; loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -145,7 +150,7 @@ public:
 
 class AstPtrType : public AstType {
 public:
-	AstPtrType(AstType* ptrType) : ptrType(ptrType) { type = PTR; }
+	AstPtrType(Location location, AstType* ptrType) : ptrType(ptrType) { type = PTR; loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -157,7 +162,7 @@ public:
 
 class AstArrayType : public AstType {
 public:
-	AstArrayType(AstType* arrayType, AstExpr* expr) : arrayType(arrayType), expr(expr) { type = ARRAY; }
+	AstArrayType(Location location, AstType* arrayType, AstExpr* expr) : arrayType(arrayType), expr(expr) { type = ARRAY; loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -180,11 +185,11 @@ public:
 
 class AstConstExpr : public AstExpr {
 public:
-	AstConstExpr(int value) : ivalue(value) { type = Token::NUMBER; }
-	AstConstExpr(char value) : cvalue(value) { type = Token::CHARACTER; }
-	AstConstExpr(bool value) : bvalue(value) { type = (value ? Token::TRUE : Token::FALSE); }
-	AstConstExpr(float value) : fvalue(value) { type = Token::FNUMBER; }
-	AstConstExpr(std::string value) : str(value) { type = Token::STRING;}
+	AstConstExpr(Location location, int value) : ivalue(value) { type = Token::NUMBER; loc = location; }
+	AstConstExpr(Location location, char value) : cvalue(value) { type = Token::CHARACTER; loc = location; }
+	AstConstExpr(Location location, bool value) : bvalue(value) { type = (value ? Token::TRUE : Token::FALSE); loc = location; }
+	AstConstExpr(Location location, float value) : fvalue(value) { type = Token::FNUMBER; loc = location; }
+	AstConstExpr(Location location, std::string value) : str(value) { type = Token::STRING; loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -203,7 +208,7 @@ public:
 
 class AstNamedExpr : public AstExpr {
 public:
-	AstNamedExpr(std::string name) : name(name) {}
+	AstNamedExpr(Location location, std::string name) : name(name) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -216,7 +221,7 @@ public:
 
 class AstCallExpr : public AstExpr {
 public:
-	AstCallExpr(std::string name, std::vector<AstExpr*> args) : name(name), args(args) {}
+	AstCallExpr(Location location, std::string name, std::vector<AstExpr*> args) : name(name), args(args) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -230,7 +235,7 @@ public:
 
 class AstCastExpr : public AstExpr {
 public:
-	AstCastExpr(AstType* type, AstExpr* expr) : type(type), expr(expr) {}
+	AstCastExpr(Location location, AstType* type, AstExpr* expr) : type(type), expr(expr) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -254,7 +259,7 @@ public:
 		NEGATE = 37
 	};
 
-	AstPrefixExpr(Prefix prefix, AstExpr* expr) : op(prefix), expr(expr) {}
+	AstPrefixExpr(Location location, Prefix prefix, AstExpr* expr) : op(prefix), expr(expr) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -275,9 +280,9 @@ public:
 		ARRAYACCESS = 100
 	};
 
-	AstPostfixExpr(Postfix postfix, AstExpr* expr) : expr(expr), op(postfix), type(0) {}
-	AstPostfixExpr(Postfix postfix, AstExpr* expr, std::string name) : expr(expr), op(postfix), name(name), type(1) {}
-	AstPostfixExpr(Postfix postfix, AstExpr* expr, AstExpr* index) : expr(expr), op(postfix), index(index), type(2) {}
+	AstPostfixExpr(Location location, Postfix postfix, AstExpr* expr) : expr(expr), op(postfix), type(0) { loc = location; }
+	AstPostfixExpr(Location location, Postfix postfix, AstExpr* expr, std::string name) : expr(expr), op(postfix), name(name), type(1) { loc = location; }
+	AstPostfixExpr(Location location, Postfix postfix, AstExpr* expr, AstExpr* index) : expr(expr), op(postfix), index(index), type(2) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -312,7 +317,7 @@ public:
 		OROR
 	};
 
-	AstBinaryExpr(Binary op, AstExpr* left, AstExpr* right) : left(left), op(op), right(right) {}
+	AstBinaryExpr(Location location, Binary op, AstExpr* left, AstExpr* right) : left(left), op(op), right(right) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -334,7 +339,7 @@ public:
 
 class AstExprStmt : public AstStmt {
 public:
-	AstExprStmt(AstExpr* expr) : expr(expr) {}
+	AstExprStmt(Location location, AstExpr* expr) : expr(expr) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -355,7 +360,7 @@ public:
 		MOD,
 	};
 
-	AstAssignStmt(AstExpr* left, AstExpr* right, Assign op = Assign::EQU) : left(left), right(right), op(op) {}
+	AstAssignStmt(Location location, AstExpr* left, AstExpr* right, Assign op = Assign::EQU) : left(left), right(right), op(op) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -369,7 +374,7 @@ public:
 
 class AstCompStmt : public AstStmt {
 public:
-	AstCompStmt(std::vector<AstStmt*> stmts) : stmts(stmts) {}
+	AstCompStmt(Location location, std::vector<AstStmt*> stmts) : stmts(stmts) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -381,7 +386,7 @@ public:
 
 class AstIfStmt : public AstStmt {
 public:
-	AstIfStmt(AstExpr* cond, AstStmt* stmt, AstStmt* elseStmt = nullptr) : cond(cond), stmt(stmt), elseStmt(elseStmt) {}
+	AstIfStmt(Location location, AstExpr* cond, AstStmt* stmt, AstStmt* elseStmt = nullptr) : cond(cond), stmt(stmt), elseStmt(elseStmt) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -395,7 +400,7 @@ public:
 
 class AstWhileStmt : public AstStmt {
 public:
-	AstWhileStmt(AstExpr* cond, AstStmt* stmt) : cond(cond), stmt(stmt) {}
+	AstWhileStmt(Location location, AstExpr* cond, AstStmt* stmt) : cond(cond), stmt(stmt) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -408,7 +413,7 @@ public:
 
 class AstReturnStmt : public AstStmt {
 public:
-	AstReturnStmt(AstExpr* expr, AstFunDecl* parentFunc) : expr(expr), funDecl(parentFunc) {}
+	AstReturnStmt(Location location, AstExpr* expr, AstFunDecl* parentFunc) : expr(expr), funDecl(parentFunc) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 
@@ -422,7 +427,7 @@ public:
 
 class AstVarStmt : public AstStmt {
 public:
-	AstVarStmt(AstVarDecl decl) : decl(decl) {}
+	AstVarStmt(Location location, AstVarDecl decl) : decl(decl) { loc = location; }
 
 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
 

@@ -36,7 +36,7 @@ AstDecl* NameResolver::findDecl(const std::string& name, bool type) {
 bool NameResolver::visit(AstVarDecl* varDecl, Phase phase) {
 	if(phase == Phase::HEAD) {
 		if(!isNameValid(varDecl->name)) {
-			Logger::getInstance().error("Name error: variable %s[%d] redeclared!", varDecl->name.c_str(), depth);
+			Logger::getInstance().error("Name error: Variable %s%s redeclared!", varDecl->name.c_str(), varDecl->loc.toString().c_str());
 			return false;
 		}
 		symbolTable.push_back({ varDecl->name, false, depth , varDecl});
@@ -67,7 +67,7 @@ bool NameResolver::visit(AstParDecl* parDecl, Phase phase) {
 bool NameResolver::visit(AstFunDecl* funDecl, Phase phase) {
 	if(phase == Phase::HEAD) {
 		if(!isNameValid(funDecl->name)) {
-			Logger::getInstance().error("Name error: Function %s[%d] redeclared!", funDecl->name.c_str(), depth);
+			Logger::getInstance().error("Name error: Function %s%s redeclared!", funDecl->name.c_str(), funDecl->loc.toString().c_str());
 			return false;
 		}
 		symbolTable.push_back({ funDecl->name, false, depth , funDecl});
@@ -102,7 +102,7 @@ bool NameResolver::visit(AstFunDecl* funDecl, Phase phase) {
 bool NameResolver::visit(AstTypeDecl* typeDecl, Phase phase) {
 	if(phase == Phase::HEAD) {
 		if(!isNameValid(typeDecl->name, true)) {
-			Logger::getInstance().error("Name error: Type %s[%d] redeclared!", typeDecl->name.c_str(), depth);
+			Logger::getInstance().error("Name error: Type %s%s redeclared!", typeDecl->name.c_str(), typeDecl->loc.toString().c_str());
 			return false;
 		}
 		symbolTable.push_back({ typeDecl->name, true, depth , typeDecl});
@@ -119,7 +119,7 @@ bool NameResolver::visit(AstTypeDecl* typeDecl, Phase phase) {
 bool NameResolver::visit(AstStructDecl* structDecl, Phase phase) {
 	if(phase == Phase::HEAD) {
 		if(!isNameValid(structDecl->name)) {
-			Logger::getInstance().error("Name error: Struct %s[%d] redeclared!", structDecl->name.c_str(), depth);
+			Logger::getInstance().error("Name error: Struct %s%s redeclared!", structDecl->name.c_str(), depth);
 			return false;
 		}
 		symbolTable.push_back({ structDecl->name, true, depth , structDecl});
@@ -156,12 +156,12 @@ bool NameResolver::visit(AstNamedType* namedType, Phase phase) {
 		AstDecl* decl = findDecl(namedType->name, true);
 
 		if(decl == nullptr) {
-			Logger::getInstance().error("Name error: Type %s not found!", namedType->name.c_str());
+			Logger::getInstance().error("Name error: Type %s%s not found!", namedType->name.c_str(), namedType->loc.toString().c_str());
 			return false;
 		}
 
 		namedType->declaration = decl;
-		Logger::getInstance().log("Found type %s", decl->prettyToString().c_str());
+		Logger::getInstance().log("Found type %s%s!", decl->prettyToString().c_str(), namedType->loc.toString().c_str());
 	}
 
 	return true;
@@ -202,12 +202,12 @@ bool NameResolver::visit(AstNamedExpr* namedExpr, Phase phase) {
 		AstDecl* decl = findDecl(namedExpr->name, false);
 
 		if(decl == nullptr) {
-			Logger::getInstance().error("Name error: Variable %s not found!", namedExpr->name.c_str());
+			Logger::getInstance().error("Name error: Variable %s%s not found!", namedExpr->name.c_str(), namedExpr->loc.toString().c_str());
 			return false;
 		}
 
 		namedExpr->declaration = decl;
-		Logger::getInstance().log("Found variable %s", decl->prettyToString().c_str());
+		Logger::getInstance().log("Found variable %s%s!", decl->prettyToString().c_str(), namedExpr->loc.toString().c_str());
 	}
 
 	return true;
@@ -218,12 +218,12 @@ bool NameResolver::visit(AstCallExpr* callExpr, Phase phase) {
 		AstDecl* decl = findDecl(callExpr->name, false);
 
 		if(decl == nullptr) {
-			Logger::getInstance().error("Name error: Function %s not found!", callExpr->name.c_str());
+			Logger::getInstance().error("Name error: Function %s%s not found!", callExpr->name.c_str(), callExpr->loc.toString().c_str());
 			return false;
 		}
 
 		callExpr->declaration = decl;
-		Logger::getInstance().log("Found function %s", decl->prettyToString().c_str());
+		Logger::getInstance().log("Found function %s%s!", decl->prettyToString().c_str(), callExpr->loc.toString().c_str());
 
 		for(auto& expr : callExpr->args) {
 			if(!expr->accept(this, phase)) {
