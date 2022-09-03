@@ -298,6 +298,9 @@ std::string AstVarStmt::toString() const {
 	return "AstVarStmt[" + decl.toString() + "]";
 }
 
+std::string AstFunStmt::toString() const {
+	return "AstFunStmt[" + decl->toString() + "]";
+}
 
 // prettyToString()
 
@@ -581,13 +584,18 @@ std::string AstWhileStmt::prettyToString() const {
 }
 
 std::string AstReturnStmt::prettyToString() const {
-	std::string ret = "AstReturnStmt{";
+	std::string ret = "AstReturnStmt";
 	if(ofType)
-		ret += colorize(typeColor, ofType->prettyGetTypeName()) + "}";
+		ret += "{" + colorize(typeColor, ofType->prettyGetTypeName()) + "}";
 	ret += "[" + (expr ? expr->prettyToString() : "") + "]";
+	
 	return ret;
 }
 
 std::string AstVarStmt::prettyToString() const {
 	return "AstVarStmt[" + decl.prettyToString() + "]";
+}
+
+std::string AstFunStmt::prettyToString() const {
+	return "AstFunStmt[" + decl->prettyToString() + "]";
 }

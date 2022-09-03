@@ -30,3 +30,4 @@ conditional statement           stmt -> if (expr) stmt (else stmt)?
 while statement                 stmt -> while (expr) stmt
 return statement                stmt -> return expr?;
 vardecl statement               stmt -> vardecl;
+fundecl statement               stmt -> fundecl;

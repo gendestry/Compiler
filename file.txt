@@ -103,31 +103,44 @@
 
 int x = 3;
 
-struct other {
-	char x;
-	int y;
-}
+// struct other {
+// 	char x;
+// 	int y;
+// }
 
-struct sth {
-	other* o;
-	int b;
-}
+// struct sth {
+// 	other* o;
+// 	int b;
+// }
 
-typedef int stevilka;
+// typedef int stevilka;
+// void neki()  { }
+// int penis() {return 0;}
 
 int main(char c) {
 	// sth xd;
 	// xd.o->x = 'c';
-	stevilka x = 3;
+	// stevilka x = 3;
 	// int xd;
 
-	sth xd;
-	xd.o->x = (char)(xd.o->y)++;
-	xd.b = 3;
-	return xd.o->y;
+	// int doStuff(int a) {
+	// 	return a;
+	// }
+	int sth(int par) {
+		int addone(int num) { return num + 1;}
+		int y = addone(x) + par; return y;
+	}
+	x = sth(4);
+	return 0;
+	// x = doStuff(3);
 
-	int** arr;
-	arr[0][1] = 4;
+	// sth xd;
+	// xd.o->x = (char)(xd.o->y)++;
+	// xd.b = doStuff(3);
+	// return xd.o->y;
+
+	// int** arr;
+	// arr[0][1] = 4;
 	// int* x = new int[10];
 
 	// c = 'c';

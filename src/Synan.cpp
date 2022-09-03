@@ -97,6 +97,7 @@ bool Synan::isFunDecl() {
 				return true;
 			}
 
+			AstFunDecl* prev = currentFunction;
 			AstFunDecl* temp = new AstFunDecl({ type->loc.line, type->loc.start, 0 }, name, type, nullptr, nullptr);
 			currentFunction = temp;
 
@@ -112,6 +113,7 @@ bool Synan::isFunDecl() {
 				decls.push_back(temp);
 				temp->loc.end = stmts.back()->loc.end;
 
+				currentFunction = prev;
 				Logger::getInstance().debug("Compound stmt");
 				return true;
 			}
@@ -170,6 +172,7 @@ bool Synan::isStructDecl() {
 
 		while(isVarDecl()) {
 			fields.push_back(*(AstVarDecl*)decls.back());
+			delete decls.back();
 			decls.pop_back();
 		} 
 		
@@ -597,8 +600,15 @@ bool Synan::isStmt() {
 		Logger::getInstance().debug("Return stmt");
 		return true;
 	}
+	else if(isFunDecl()) {
+		stmts.push_back(new AstFunStmt(decls.back()->loc, (AstFunDecl*)decls.back()));
+		decls.pop_back();
+		Logger::getInstance().debug("Fun decl stmt");
+		return true;
+	}
 	else if(isVarDecl()) {
 		stmts.push_back(new AstVarStmt(decls.back()->loc, *(AstVarDecl*)decls.back()));
+		delete decls.back();
 		decls.pop_back();
 		Logger::getInstance().debug("Var decl stmt");
 		return true;

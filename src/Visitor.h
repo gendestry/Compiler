@@ -30,6 +30,7 @@ class AstIfStmt;
 class AstWhileStmt;
 class AstReturnStmt;
 class AstVarStmt;
+class AstFunStmt;
 
 struct Symb {
 	std::string name;
@@ -71,4 +72,5 @@ public:
 	virtual bool visit(AstWhileStmt* whileStmt, Phase phase) = 0;
 	virtual bool visit(AstReturnStmt* returnStmt, Phase phase) = 0;
 	virtual bool visit(AstVarStmt* varStmt, Phase phase) = 0;
+	virtual bool visit(AstFunStmt* funStmt, Phase phase) = 0;
 };

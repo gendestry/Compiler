@@ -73,6 +73,7 @@ public:
 	AstType* type;
 	AstParDecl* params;
 	AstStmt* body;
+	bool hasReturn = false;
 };
 
 class AstTypeDecl : public AstDecl {
@@ -435,4 +436,18 @@ public:
 	std::string prettyToString() const override;
 public:
 	AstVarDecl decl;
+};
+
+class AstFunStmt : public AstStmt {
+public:
+	AstFunStmt(Location location, AstFunDecl* decl) : decl(decl) { loc = location; }
+
+	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
+
+	std::string toString() const override;
+	std::string prettyToString() const override;
+
+	~AstFunStmt() { delete decl; }
+public:
+	AstFunDecl* decl;
 };

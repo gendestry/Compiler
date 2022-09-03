@@ -375,3 +375,7 @@ bool NameResolver::visit(AstReturnStmt* returnStmt, Phase phase) {
 bool NameResolver::visit(AstVarStmt* varStmt, Phase phase) {
 	return varStmt->decl.accept(this, phase);
 }
+
+bool NameResolver::visit(AstFunStmt* funStmt, Phase phase) {
+	return funStmt->decl->accept(this, phase);
+}

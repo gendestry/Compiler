@@ -70,6 +70,9 @@ bool TypeResolver::visit(AstFunDecl* funDecl, Phase phase) {
 		return false;
 	}
 
+	if(funDecl->type->type == AstType::VOID)
+		funDecl->hasReturn = true;
+
 	if(funDecl->params && !funDecl->params->accept(this, phase)) {
 		return false;
 	}
@@ -77,6 +80,12 @@ bool TypeResolver::visit(AstFunDecl* funDecl, Phase phase) {
 	if(funDecl->body && !funDecl->body->accept(this, phase)) {
 		return false;
 	}
+
+	if(!funDecl->hasReturn) {
+		Logger::getInstance().error("Type error: Function %s%s does not have return statement!", funDecl->name.c_str(), funDecl->loc.toString().c_str());
+		return false;
+	}
+
 	return true;
 }
 
@@ -590,6 +599,8 @@ bool TypeResolver::visit(AstReturnStmt* returnStmt, Phase phase) {
 		returnStmt->ofType = returnStmt->funDecl->type;
 	}
 
+	returnStmt->funDecl->hasReturn = true;
+
 	Logger::getInstance().log("Type resolved: %s%s!", returnStmt->prettyToString().c_str(), returnStmt->loc.toString().c_str());
 	return true;
 }
@@ -599,6 +610,13 @@ bool TypeResolver::visit(AstVarStmt* varStmt, Phase phase) {
 		return false;
 	}
 
-	// Logger::getInstance().log("Type resolved: %s", varStmt->prettyToString().c_str());
+	return true;
+}
+
+bool TypeResolver::visit(AstFunStmt* funStmt, Phase phase) {
+	if(!funStmt->decl->accept(this, phase)) {
+		return false;
+	}
+
 	return true;
 }

@@ -32,4 +32,5 @@ public:
 	bool visit(AstWhileStmt* whileStmt, Phase phase) override;
 	bool visit(AstReturnStmt* returnStmt, Phase phase) override;
 	bool visit(AstVarStmt* varStmt, Phase phase) override;
+	bool visit(AstFunStmt* funStmt, Phase phase) override;
 };
