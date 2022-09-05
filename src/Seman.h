@@ -13,7 +13,6 @@ public:
 
 	bool resolveNames();
 	bool resolveTypes();
-	bool resolveLValues();
 
 private:
 	std::vector<AstDecl*>& decls;

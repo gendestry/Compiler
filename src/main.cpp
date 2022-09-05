@@ -27,8 +27,5 @@ int main() {
 	if(!seman.resolveTypes())
 		return -1;
 
-	// synan.printDecls();
-
-	// if(!seman.lvalueResolver())
-	// 	return -1;
+	return 0;
 }

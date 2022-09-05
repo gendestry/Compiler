@@ -22,6 +22,8 @@ postfix expression                 F -> G G'        G' -> (++  --  [expr]  .iden
 function call                   expr -> identifier( |expr|? |, expr|* )
 const expression                expr -> const
 variable access                 expr -> identifier
+new expression                  expr -> new type
+delete expression               expr -> delete identifier
 
 expression statement            stmt -> expr;
 assignment statement            stmt -> expr (=  +=  -=  *=  /=  %=) expr;

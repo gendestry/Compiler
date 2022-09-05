@@ -103,10 +103,10 @@
 
 int x = 3;
 
-// struct other {
-// 	char x;
-// 	int y;
-// }
+struct other {
+	char x;
+	int y;
+}
 
 // struct sth {
 // 	other* o;
@@ -118,6 +118,12 @@ int x = 3;
 // int penis() {return 0;}
 
 int main(char c) {
+	
+	other oth;
+	other oth1;
+	oth = oth1;
+	&3;
+	int** y = (int**)'a';
 	// sth xd;
 	// xd.o->x = 'c';
 	// stevilka x = 3;

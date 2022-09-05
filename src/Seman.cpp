@@ -30,7 +30,3 @@ bool Seman::resolveTypes() {
 
 	return true;
 }
-
-// bool Seman::lvalueResolver() {
-// 	return true;
-// }

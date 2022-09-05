@@ -30,6 +30,8 @@ public:
 public:
 	virtual std::string toString() const override;
 	virtual std::string prettyToString() const override;
+
+	virtual AstType* getType() {}
 };
 
 class AstVarDecl : public AstDecl {
@@ -122,7 +124,7 @@ public:
 	virtual std::string toString() const override;
 	virtual std::string prettyToString() const override;
 	std::string getTypeName() const;
-	std::string prettyGetTypeName() const;	
+	std::string prettyGetTypeName() const;
 };
 
 class AstAtomType : public AstType {
@@ -182,6 +184,7 @@ public:
 	virtual std::string prettyToString() const override;
 
 	AstType* ofType = nullptr;
+	bool isLValue = false;
 };
 
 class AstConstExpr : public AstExpr {
@@ -329,6 +332,31 @@ public:
 	Binary op;
 	AstExpr* right;
 };
+
+// class AstNewExpr : public AstExpr {
+// public:
+// 	AstNewExpr(Location location, AstType* type) : type(type) { loc = location; }
+
+// 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
+
+// 	std::string toString() const override;
+// 	std::string prettyToString() const override;
+// public:
+// 	AstType* type;
+// };
+
+// class AstDeleteExpr : public AstExpr {
+// public:
+// 	AstDeleteExpr(Location location, AstNamedExpr* expr) : expr(expr) { loc = location; }
+
+// 	bool accept(Visitor* visitor, Phase phase) override { return visitor->visit(this, phase); }
+
+// 	std::string toString() const override;
+// 	std::string prettyToString() const override;
+// public:
+// 	AstNamedExpr* expr;
+// };
+
 
 /* ----- STMTS ----- */
 
