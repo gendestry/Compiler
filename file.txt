@@ -101,29 +101,37 @@
 // 	return "helloworld!";
 // }
 
-int x = 3;
 
 struct other {
 	char x;
 	int y;
 }
 
-// struct sth {
-// 	other* o;
-// 	int b;
-// }
+struct sth {
+	other* o;
+	int b;
+}
 
 // typedef int stevilka;
 // void neki()  { }
 // int penis() {return 0;}
+// typedef int stevilka;
+
+int x = 3;
+// char x = 'c';
 
 int main(char c) {
-	
-	other oth;
-	other oth1;
-	oth = oth1;
+	// stevilka y = 4;
 	&3;
-	int** y = (int**)'a';
+	// int** y = (int**)'a';
+	// int xd = (int)c;
+	sth nekineki;
+	nekineki.o->x = '4';
+	int[2] yxz;
+	yxz[0] = 3;
+	// other oth;
+	// other oth1;
+	// oth = oth1;
 	// sth xd;
 	// xd.o->x = 'c';
 	// stevilka x = 3;
@@ -136,6 +144,8 @@ int main(char c) {
 		int addone(int num) { return num + 1;}
 		int y = addone(x) + par; return y;
 	}
+
+	// addone(4);
 	x = sth(4);
 	return 0;
 	// x = doStuff(3);

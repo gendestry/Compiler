@@ -5,6 +5,7 @@ static std::string typeColor = Font::byColorCode(144, 42, 181);
 static std::string nameColor = Font::byColorCode(195, 180, 52);
 static std::string valueColor = Font::byColorCode(39, 180, 99);
 static std::string charColor = Font::byColorCode(200, 120, 40);
+static std::string lvalueColor = Font::byColorCode(100, 170, 255);
 static std::string stringColor = charColor;
 
 static std::string colorize(std::string color, std::string var) {
@@ -101,7 +102,8 @@ std::string AstExpr::toString() const {
 }
 
 std::string AstConstExpr::toString() const {
-	std::string ret = "AstConstExpr";
+	std::string lvalue = isLValue ? colorize(lvalueColor, "L") : "";
+	std::string ret = "AstConstExpr" + lvalue;
 	std::string temp = "";
 
 	if(ofType) {
@@ -394,7 +396,7 @@ std::string AstExpr::prettyToString() const {
 }
 
 std::string AstConstExpr::prettyToString() const {
-	std::string ret = "AstConstExpr";
+	std::string ret = isLValue ? colorize(lvalueColor, "AstConstExpr") : "AstConstExpr";
 	std::string temp = "";
 
 	if(ofType) {
@@ -429,7 +431,8 @@ std::string AstConstExpr::prettyToString() const {
 }
 
 std::string AstNamedExpr::prettyToString() const {
-	std::string ret = "AstNamedExpr";
+	std::string ret = isLValue ? colorize(lvalueColor, "AstNamedExpr") : "AstNamedExpr";
+
 	if(ofType) {
 		ret += "{" + ofType->prettyGetTypeName() + "}";
 	}
@@ -438,7 +441,8 @@ std::string AstNamedExpr::prettyToString() const {
 }
 
 std::string AstCallExpr::prettyToString() const {
-	std::string str = "AstCallExpr";
+	std::string str = isLValue ? colorize(lvalueColor, "AstCallExpr") : "AstCallExpr";
+	
 	if(ofType) {
 		str += "{" + ofType->prettyGetTypeName() + "}";
 	}
@@ -454,7 +458,8 @@ std::string AstCallExpr::prettyToString() const {
 }
 
 std::string AstCastExpr::prettyToString() const {
-	std::string ret = "AstCastExpr";
+	std::string ret = isLValue ? colorize(lvalueColor, "AstCastExpr") : "AstCastExpr";
+
 	if(ofType) {
 		ret += "{" + ofType->prettyGetTypeName() + "}";
 	}
@@ -464,7 +469,8 @@ std::string AstCastExpr::prettyToString() const {
 }
 
 std::string AstPrefixExpr::prettyToString() const {
-	std::string ret = "AstPrefixExpr";
+	std::string ret = isLValue ? colorize(lvalueColor, "AstPrefixExpr") : "AstPrefixExpr";
+
 	if(ofType) {
 		ret += "{" + ofType->prettyGetTypeName() + "}";
 	}
@@ -503,7 +509,8 @@ std::string AstPrefixExpr::prettyToString() const {
 }
 
 std::string AstPostfixExpr::prettyToString() const {
-	std::string ret = "AstPostfixExpr";
+	std::string ret = isLValue ? colorize(lvalueColor, "AstPostfixExpr") : "AstPostfixExpr";
+
 	if(ofType) {
 		ret += "{" + ofType->prettyGetTypeName() + "}";
 	}
@@ -541,7 +548,8 @@ std::string AstPostfixExpr::prettyToString() const {
 }
 
 std::string AstBinaryExpr::prettyToString() const {
-	std::string ret = "AstBinExpr";
+	std::string ret = isLValue ? colorize(lvalueColor, "AstBinExpr") : "AstBinExpr";
+
 	if(ofType) {
 		ret += "{" + ofType->prettyGetTypeName() + "}";
 	}

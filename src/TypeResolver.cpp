@@ -157,6 +157,7 @@ bool TypeResolver::visit(AstConstExpr* constExpr, Phase phase) {
 bool TypeResolver::visit(AstNamedExpr* namedExpr, Phase phase) {
 	AstVarDecl* decl = (AstVarDecl*)namedExpr->declaration;
 	namedExpr->ofType = decl->type;
+	namedExpr->isLValue = true;
 
 	// Logger::getInstance().log("Type resolved: %s", namedExpr->toString().c_str());
 	return true;
@@ -257,6 +258,7 @@ bool TypeResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 		case AstPrefixExpr::DEREF:
 			if(prefixExpr->expr->ofType->type == AstType::PTR) {
 				prefixExpr->ofType = ((AstPtrType*)prefixExpr->expr->ofType)->ptrType;
+				prefixExpr->isLValue = true;
 			}
 			else {
 				Logger::getInstance().error("Type error: Type must be of pointer type %s%s!", prefixExpr->toString().c_str(), prefixExpr->loc.toString().c_str());
@@ -325,6 +327,8 @@ bool TypeResolver::visit(AstPostfixExpr* postfixExpr, Phase phase) {
 					Logger::getInstance().error("Type error: Struct %s doesn't have field with name %s%s!", namedType->name.c_str(), postfixExpr->name.c_str(), postfixExpr->loc.toString().c_str());
 					return false;
 				}
+
+				postfixExpr->isLValue = true;
 			}
 			else {
 				Logger::getInstance().error("Type error: How did you get here? %s%s!", postfixExpr->toString().c_str(), postfixExpr->loc.toString().c_str());
@@ -351,6 +355,8 @@ bool TypeResolver::visit(AstPostfixExpr* postfixExpr, Phase phase) {
 						Logger::getInstance().error("Type error: Struct %s doesn't have field with name %s%s!", namedType->name.c_str(), postfixExpr->name.c_str(), postfixExpr->loc.toString().c_str());
 						return false;
 					}
+
+					postfixExpr->isLValue = true;
 				}
 				else {
 					Logger::getInstance().error("Type error: Trying to access a nonexisting struct element %s%s!", postfixExpr->toString().c_str(), postfixExpr->loc.toString().c_str());
@@ -383,9 +389,11 @@ bool TypeResolver::visit(AstPostfixExpr* postfixExpr, Phase phase) {
 				return false;
 			}
 
+			postfixExpr->isLValue = true;
 			break;
 	};
 
+	postfixExpr->isLValue = true;
 	return true;
 }
 

@@ -30,8 +30,6 @@ public:
 public:
 	virtual std::string toString() const override;
 	virtual std::string prettyToString() const override;
-
-	virtual AstType* getType() {}
 };
 
 class AstVarDecl : public AstDecl {
@@ -125,6 +123,8 @@ public:
 	virtual std::string prettyToString() const override;
 	std::string getTypeName() const;
 	std::string prettyGetTypeName() const;
+
+	// virtual AstType* getType() { return this; }
 };
 
 class AstAtomType : public AstType {
