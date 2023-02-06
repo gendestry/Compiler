@@ -225,6 +225,10 @@ bool TypeResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 	switch(prefixExpr->op) {
 		case AstPrefixExpr::PPLUS:
 		case AstPrefixExpr::MMINUS:
+			if(!prefixExpr->expr->isLValue) {
+				Logger::getInstance().error("Type error: Cannot increment/decrement non-lvalue %s%s!", prefixExpr->toString().c_str(), prefixExpr->loc.toString().c_str());
+				return false;
+			}
 			if(prefixExpr->expr->ofType->type == AstType::PTR) {
 				prefixExpr->ofType = prefixExpr->expr->ofType;
 				return true;
@@ -233,6 +237,7 @@ bool TypeResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 				prefixExpr->ofType = prefixExpr->expr->ofType;
 				return true;
 			}
+			// continue to check for int/float
 		case AstPrefixExpr::PLUS:
 		case AstPrefixExpr::MINUS:
 			if(prefixExpr->expr->ofType->type == AstType::INT) {
@@ -267,6 +272,10 @@ bool TypeResolver::visit(AstPrefixExpr* prefixExpr, Phase phase) {
 			break;
 		case AstPrefixExpr::ADDR:
 			prefixExpr->ofType = new AstPtrType(prefixExpr->loc, prefixExpr->expr->ofType);
+			if(!prefixExpr->expr->isLValue) {
+				Logger::getInstance().error("Type error: Cannot take address of non-lvalue %s%s!", prefixExpr->toString().c_str(), prefixExpr->loc.toString().c_str());
+				return false;
+			}
 			break;
 		case AstPrefixExpr::NEGATE: // ~
 			if(prefixExpr->expr->ofType->type == AstType::INT) {
@@ -292,6 +301,10 @@ bool TypeResolver::visit(AstPostfixExpr* postfixExpr, Phase phase) {
 	switch(postfixExpr->op) {
 		case AstPostfixExpr::PPLUS:
 		case AstPostfixExpr::MMINUS:
+			if(!postfixExpr->expr->isLValue) {
+				Logger::getInstance().error("Type error: Cannot increment non-lvalue %s%s!", postfixExpr->toString().c_str(), postfixExpr->loc.toString().c_str());
+				return false;
+			}
 			if(postfixExpr->expr->ofType->type == AstType::INT) {
 				postfixExpr->ofType = postfixExpr->expr->ofType;
 			}
@@ -529,6 +542,12 @@ bool TypeResolver::visit(AstAssignStmt* assignStmt, Phase phase) {
 			Logger::getInstance().error("Type error: Invalid type for assignment %s%s!", assignStmt->toString().c_str(), assignStmt->loc.toString().c_str());
 			return false;
 		}
+	}
+
+	// lvalue
+	if(!assignStmt->left->isLValue) {
+		Logger::getInstance().error("Type error: Left side of assign statement must be a lvalue %s!", assignStmt->loc.toString().c_str());
+		return false;
 	}
 
 	Logger::getInstance().log("Type resolved: %s%s!", assignStmt->prettyToString().c_str(), assignStmt->loc.toString().c_str());

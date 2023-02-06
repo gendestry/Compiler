@@ -4,9 +4,12 @@
 #include "Seman.h"
 #include "Logger.h"
 
-int main() {
+int main(int argc, char** argv) {
 	
-	std::string filename = "file.txt";
+	std::string filename = "tests/file.txt";
+	if (argc > 1) {
+		filename = argv[1];
+	}
 
 	Lexan lexan;
 	if(!lexan.parse(filename))

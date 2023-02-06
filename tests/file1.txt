@@ -1,0 +1,6 @@
+int main() {
+    int[3] x;
+    int* y = &x[2];
+    *y += 4;
+    return 0;
+}
